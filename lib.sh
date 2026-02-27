@@ -2353,10 +2353,27 @@ env_start() {
         [ -z "$port" ] && return 1
         echo -e "${BLUE}🔌 Nouveau port assigné: $port${NC}"
     else
+        # Refresh cache to avoid using stale PM2 state when deciding port reuse
+        invalidate_pm2_cache
+
         # Verify persistent port isn't already taken by another PM2 app
         local other_app=$(get_pm2_data_cached | awk -F'|' -v p="$port" -v n="$env_name" '$3 == p && $1 != n {print $1}')
-        if [ -n "$other_app" ] || is_port_in_use "$port"; then
-            warning "Port $port (persistant) déjà utilisé par ${other_app:-un autre processus}, recherche d'un nouveau port..."
+
+        # Detect if the port is currently used by this same app (normal during start/redeploy)
+        local self_status=$(get_pm2_app_data "$env_name" "status")
+        local self_port=$(get_pm2_app_data "$env_name" "port")
+        local self_owns_port="false"
+        if [ "$self_status" = "online" ] && [ "$self_port" = "$port" ] && is_port_in_use "$port"; then
+            self_owns_port="true"
+        fi
+
+        if [ -n "$other_app" ]; then
+            warning "Port $port (persistant) déjà utilisé par $other_app, recherche d'un nouveau port..."
+            port=$(find_available_port 3000)
+            [ -z "$port" ] && return 1
+            echo -e "${BLUE}🔌 Nouveau port assigné: $port${NC}"
+        elif is_port_in_use "$port" && [ "$self_owns_port" != "true" ]; then
+            warning "Port $port (persistant) déjà utilisé par un autre processus, recherche d'un nouveau port..."
             port=$(find_available_port 3000)
             [ -z "$port" ] && return 1
             echo -e "${BLUE}🔌 Nouveau port assigné: $port${NC}"
