@@ -85,6 +85,13 @@ export BUILDFLOWZ_PM2_CACHE_TTL=5
 export BUILDFLOWZ_PREFER_JQ="${BUILDFLOWZ_PREFER_JQ:-true}"
 
 # ============================================================================
+# DISK SPACE CONFIGURATION
+# ============================================================================
+
+# Low disk warning threshold in GB (shows alert in menu header)
+export BUILDFLOWZ_DISK_WARN_GB="${BUILDFLOWZ_DISK_WARN_GB:-5}"
+
+# ============================================================================
 # TOOL REQUIREMENTS
 # ============================================================================
 

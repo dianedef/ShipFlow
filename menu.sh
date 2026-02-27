@@ -10,7 +10,29 @@ source "$SCRIPT_DIR/lib.sh"
 
 # Header display
 print_header() {
-    ui_header "BuildFlowz DevServer" "Development Environment"
+    local free_human
+    free_human=$(disk_free_human)
+    local updates_total
+    updates_total=$(updates_total_cached)
+
+    local status_left=""
+    local status_right=""
+    if [ -n "$free_human" ]; then
+        status_left="Free: $free_human"
+    fi
+    if [ -n "$updates_total" ]; then
+        status_right="Up: $updates_total"
+    fi
+
+    if [ -n "$status_left" ] || [ -n "$status_right" ]; then
+        ui_header "BuildFlowz DevServer" "Development Environment" "$status_left" "$status_right"
+    else
+        ui_header "BuildFlowz DevServer" "Development Environment"
+    fi
+
+    if disk_is_low_space; then
+        echo -e "${RED}⚠️  Low disk space. Consider running Disk Cleanup.${NC}"
+    fi
 
     # Display session identity banner if enabled
     if [ "$BUILDFLOWZ_SESSION_ENABLED" = "true" ]; then
@@ -32,8 +54,8 @@ show_menu() {
     echo -e "  ${CYAN}5)${NC} Remove - Delete an environment"
     echo ""
     echo -e "${BLUE}⚡ BATCH${NC}"
-    echo -e "  ${CYAN}6)${NC} Stop All - Stop all environments"
-    echo -e "  ${CYAN}7)${NC} Start All - Start all environments"
+    echo -e "  ${CYAN}6)${NC} Start All - Start all environments"
+    echo -e "  ${CYAN}7)${NC} Stop All - Stop all environments"
     echo -e "  ${CYAN}8)${NC} Restart All - Restart all environments"
     echo ""
     echo -e "${BLUE}⚙️  ADVANCED${NC}"
@@ -226,6 +248,8 @@ show_advanced_menu() {
         echo -e "  ${CYAN}5)${NC} 🔐 Session Identity - View or reset session"
         echo -e "  ${CYAN}6)${NC} 🌐 Publish to Web - Configure HTTPS (Caddy + DuckDNS)"
         echo -e "  ${CYAN}7)${NC} 📖 Help - How BuildFlowz works"
+        echo -e "  ${CYAN}8)${NC} 🧹 CleanUp Space - Free space (light/aggressive)"
+        echo -e "  ${CYAN}9)${NC} ⬆️  Updates - Check & update packages"
         echo ""
         echo -e "  ${CYAN}0)${NC} ← Back to Main Menu"
         echo ""
@@ -487,6 +511,14 @@ EOF
                 # Help
                 show_help
                 ;;
+            8)
+                # Disk Cleanup
+                disk_cleanup_menu
+                ;;
+            9)
+                # Updates
+                updates_menu
+                ;;
             0)
                 return 0
                 ;;
@@ -687,15 +719,15 @@ main() {
                 ;;
 
             6)
-                # Stop All
-                echo -e "${GREEN}🛑 Stop All Environments${NC}"
-                batch_stop_all
-                ;;
-
-            7)
                 # Start All
                 echo -e "${GREEN}🚀 Start All Environments${NC}"
                 batch_start_all
+                ;;
+
+            7)
+                # Stop All
+                echo -e "${GREEN}🛑 Stop All Environments${NC}"
+                batch_stop_all
                 ;;
 
             8)

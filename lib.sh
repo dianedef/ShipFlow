@@ -217,28 +217,72 @@ ui_confirm() {
 # Arguments:
 #   $1 - Title text
 #   $2 - Subtitle (optional)
+#   $3 - Status left (optional, shown at top-left)
+#   $4 - Status right (optional, shown at top-right)
 # -----------------------------------------------------------------------------
 ui_header() {
     local title="$1"
     local subtitle="${2:-}"
+    local status_left="${3:-}"
+    local status_right="${4:-}"
+    local width=50
+    local content_width=46
+
+    local status_line=""
+    if [ -n "$status_left" ] || [ -n "$status_right" ]; then
+        local left="$status_left"
+        local right="$status_right"
+        local left_len=${#left}
+        local right_len=${#right}
+        local max_right=$((content_width - left_len - 1))
+        if [ $max_right -lt 0 ]; then
+            max_right=0
+        fi
+        if [ $right_len -gt $max_right ]; then
+            right=${right:0:$max_right}
+            right_len=${#right}
+        fi
+        local spaces=$((content_width - left_len - right_len))
+        if [ $spaces -lt 1 ]; then
+            spaces=1
+        fi
+        status_line="${left}$(printf '%*s' "$spaces" '')${right}"
+    fi
+
+    center_line() {
+        local text="$1"
+        local text_len=${#text}
+        if [ $text_len -ge $content_width ]; then
+            echo "${text:0:$content_width}"
+            return
+        fi
+        local pad=$(( (content_width - text_len) / 2 ))
+        printf "%*s%s" "$pad" "" "$text"
+    }
 
     if [ "$HAS_GUM" = true ]; then
-        if [ -n "$subtitle" ]; then
-            gum style \
-                --foreground 212 --border-foreground 212 --border double \
-                --align center --width 50 --margin "1 2" --padding "1 2" \
-                "$title" "$subtitle"
-        else
-            gum style \
-                --foreground 212 --border-foreground 212 --border double \
-                --align center --width 50 --margin "1 2" --padding "1 2" \
-                "$title"
+        local header_lines=()
+        if [ -n "$status_line" ]; then
+            header_lines+=("$status_line" "")
         fi
+        header_lines+=("$(center_line "$title")")
+        if [ -n "$subtitle" ]; then
+            header_lines+=("$(center_line "$subtitle")")
+        fi
+
+        gum style \
+            --foreground 212 --border-foreground 212 --border double \
+            --align left --width 50 --margin "1 2" --padding "1 2" \
+            "${header_lines[@]}"
     else
         echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
-        echo -e "               ${YELLOW}${title}${NC}"
+        if [ -n "$status_line" ]; then
+            echo -e " ${GREEN}${status_line}${NC}"
+            echo -e "${CYAN}--------------------------------------------------${NC}"
+        fi
+        printf " %s\n" "$(center_line "$title")" | sed "s/^/${YELLOW}/;s/\$/${NC}/"
         if [ -n "$subtitle" ]; then
-            echo -e "             ${BLUE}${subtitle}${NC}"
+            printf " %s\n" "$(center_line "$subtitle")" | sed "s/^/${BLUE}/;s/\$/${NC}/"
         fi
         echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
     fi
@@ -261,6 +305,271 @@ ui_spinner() {
         echo -e "${BLUE}${title}${NC}" >&2
         "$@"
     fi
+}
+
+# ============================================================================
+# DISK CLEANUP UTILITIES
+# ============================================================================
+
+disk_free_bytes() {
+    df -B1 --output=avail / 2>/dev/null | tail -n 1 | tr -d ' '
+}
+
+disk_free_human() {
+    df -h --output=avail / 2>/dev/null | tail -n 1 | tr -d ' '
+}
+
+disk_warn_threshold_bytes() {
+    local gb="${BUILDFLOWZ_DISK_WARN_GB:-5}"
+    if ! [[ "$gb" =~ ^[0-9]+$ ]]; then
+        gb=5
+    fi
+    echo $((gb * 1024 * 1024 * 1024))
+}
+
+disk_is_low_space() {
+    local free_bytes
+    free_bytes=$(disk_free_bytes)
+    local threshold
+    threshold=$(disk_warn_threshold_bytes)
+    [ -n "$free_bytes" ] && [ -n "$threshold" ] && [ "$free_bytes" -lt "$threshold" ]
+}
+
+format_bytes() {
+    local bytes="$1"
+    if command -v numfmt >/dev/null 2>&1; then
+        numfmt --to=iec --suffix=B "$bytes"
+    else
+        echo "${bytes}B"
+    fi
+}
+
+cleanup_disk_light() {
+    rm -rf "$HOME/.cache/yarn" \
+        "$HOME/.cache/pip" \
+        "$HOME/.cache/pnpm" \
+        "$HOME/.npm/_cacache" 2>/dev/null || true
+}
+
+cleanup_disk_aggressive() {
+    cleanup_disk_light
+    rm -rf "$HOME/.npm" \
+        "$HOME/.local/share/pnpm" 2>/dev/null || true
+}
+
+disk_cleanup_menu() {
+    echo -e "${GREEN}🧹 Disk Cleanup${NC}"
+    echo ""
+
+    local before_bytes
+    before_bytes=$(disk_free_bytes)
+    local before_human
+    before_human=$(disk_free_human)
+
+    echo -e "${BLUE}Free space before:${NC} ${GREEN}${before_human}${NC}"
+    echo ""
+
+    local choice
+    choice=$(printf "%s\n%s\n%s" \
+        "Light (safe caches only)" \
+        "Aggressive (includes npm + pnpm caches)" \
+        "Cancel" | ui_choose "Cleanup level:")
+
+    if [ -z "$choice" ] || [ "$choice" = "Cancel" ]; then
+        echo -e "${BLUE}Cancelled${NC}"
+        return 0
+    fi
+
+    echo ""
+    if [ "$choice" = "Light (safe caches only)" ]; then
+        echo -e "${YELLOW}This will remove:${NC}"
+        echo -e "  ${CYAN}•${NC} ~/.cache/yarn"
+        echo -e "  ${CYAN}•${NC} ~/.cache/pip"
+        echo -e "  ${CYAN}•${NC} ~/.cache/pnpm"
+        echo -e "  ${CYAN}•${NC} ~/.npm/_cacache"
+        echo ""
+        if ! ui_confirm "Proceed with light cleanup?"; then
+            echo -e "${BLUE}Cancelled${NC}"
+            return 0
+        fi
+        cleanup_disk_light
+    else
+        echo -e "${YELLOW}This will remove:${NC}"
+        echo -e "  ${CYAN}•${NC} ~/.cache/yarn"
+        echo -e "  ${CYAN}•${NC} ~/.cache/pip"
+        echo -e "  ${CYAN}•${NC} ~/.cache/pnpm"
+        echo -e "  ${CYAN}•${NC} ~/.npm/_cacache"
+        echo -e "  ${CYAN}•${NC} ~/.npm"
+        echo -e "  ${CYAN}•${NC} ~/.local/share/pnpm"
+        echo ""
+        if ! ui_confirm "Proceed with aggressive cleanup?"; then
+            echo -e "${BLUE}Cancelled${NC}"
+            return 0
+        fi
+        cleanup_disk_aggressive
+    fi
+
+    local after_bytes
+    after_bytes=$(disk_free_bytes)
+    local after_human
+    after_human=$(disk_free_human)
+
+    echo ""
+    echo -e "${BLUE}Free space after:${NC} ${GREEN}${after_human}${NC}"
+
+    if [ -n "$before_bytes" ] && [ -n "$after_bytes" ] && [ "$after_bytes" -ge "$before_bytes" ]; then
+        local freed=$((after_bytes - before_bytes))
+        echo -e "${GREEN}Recovered:${NC} $(format_bytes "$freed")"
+    fi
+}
+
+# ============================================================================
+# UPDATE CHECK UTILITIES
+# ============================================================================
+
+UPDATE_CACHE_TIME=0
+UPDATE_CACHE_TOTAL=""
+UPDATE_CACHE_APT=0
+UPDATE_CACHE_NPM=0
+UPDATE_CACHE_PIP=0
+UPDATE_CACHE_RUSTUP=0
+UPDATE_CACHE_TTL=300
+
+run_with_timeout() {
+    if command -v timeout >/dev/null 2>&1; then
+        timeout 6s "$@"
+    else
+        "$@"
+    fi
+}
+
+count_apt_updates() {
+    if ! command -v apt >/dev/null 2>&1; then
+        echo 0
+        return
+    fi
+    local out
+    out=$(run_with_timeout apt list --upgradable 2>/dev/null || true)
+    echo "$out" | tail -n +2 | sed '/^$/d' | wc -l
+}
+
+count_npm_updates() {
+    if ! command -v npm >/dev/null 2>&1; then
+        echo 0
+        return
+    fi
+    local out
+    out=$(run_with_timeout npm -g outdated --parseable --depth=0 2>/dev/null || true)
+    echo "$out" | sed '/^$/d' | wc -l
+}
+
+count_pip_updates() {
+    if command -v python3 >/dev/null 2>&1; then
+        local out
+        out=$(run_with_timeout python3 -m pip list --outdated --format=columns 2>/dev/null || true)
+        echo "$out" | tail -n +3 | sed '/^$/d' | wc -l
+        return
+    fi
+    if command -v pip >/dev/null 2>&1; then
+        local out
+        out=$(run_with_timeout pip list --outdated --format=columns 2>/dev/null || true)
+        echo "$out" | tail -n +3 | sed '/^$/d' | wc -l
+        return
+    fi
+    echo 0
+}
+
+count_rustup_updates() {
+    if ! command -v rustup >/dev/null 2>&1; then
+        echo 0
+        return
+    fi
+    local out
+    out=$(run_with_timeout rustup update --check 2>/dev/null || true)
+    echo "$out" | grep -ci "available"
+}
+
+updates_refresh_cache() {
+    local now
+    now=$(date +%s)
+    if [ $((now - UPDATE_CACHE_TIME)) -lt $UPDATE_CACHE_TTL ] && [ -n "$UPDATE_CACHE_TOTAL" ]; then
+        return
+    fi
+
+    UPDATE_CACHE_APT=$(count_apt_updates)
+    UPDATE_CACHE_NPM=$(count_npm_updates)
+    UPDATE_CACHE_PIP=$(count_pip_updates)
+    UPDATE_CACHE_RUSTUP=$(count_rustup_updates)
+
+    UPDATE_CACHE_TOTAL=$((UPDATE_CACHE_APT + UPDATE_CACHE_NPM + UPDATE_CACHE_PIP + UPDATE_CACHE_RUSTUP))
+    UPDATE_CACHE_TIME=$now
+}
+
+updates_total_cached() {
+    updates_refresh_cache
+    echo "$UPDATE_CACHE_TOTAL"
+}
+
+updates_menu() {
+    updates_refresh_cache
+
+    echo -e "${GREEN}⬆️  Updates Summary${NC}"
+    echo ""
+    echo -e "${BLUE}Pending updates:${NC}"
+    echo -e "  ${CYAN}•${NC} apt:     ${YELLOW}${UPDATE_CACHE_APT}${NC}"
+    echo -e "  ${CYAN}•${NC} npm -g:  ${YELLOW}${UPDATE_CACHE_NPM}${NC}"
+    echo -e "  ${CYAN}•${NC} pip:     ${YELLOW}${UPDATE_CACHE_PIP}${NC}"
+    echo -e "  ${CYAN}•${NC} rustup:  ${YELLOW}${UPDATE_CACHE_RUSTUP}${NC}"
+    echo -e "  ${CYAN}•${NC} Total:   ${GREEN}${UPDATE_CACHE_TOTAL}${NC}"
+    echo ""
+
+    echo -e "${BLUE}Options:${NC}"
+    echo -e "  ${CYAN}1)${NC} Update All"
+    echo -e "  ${CYAN}0)${NC} Back"
+    echo ""
+    echo -e "${YELLOW}Your choice:${NC} \c"
+    read -r update_choice
+
+    case $update_choice in
+        1)
+            echo -e "${YELLOW}This will run system and global package updates.${NC}"
+            if ! ui_confirm "Proceed with Update All?"; then
+                echo -e "${BLUE}Cancelled${NC}"
+                return 0
+            fi
+
+            if command -v apt >/dev/null 2>&1; then
+                echo -e "${GREEN}🔧 Updating apt...${NC}"
+                sudo apt update && sudo apt upgrade -y
+            fi
+
+            if command -v npm >/dev/null 2>&1; then
+                echo -e "${GREEN}🔧 Updating npm globals...${NC}"
+                npm -g update
+            fi
+
+            if command -v python3 >/dev/null 2>&1; then
+                echo -e "${GREEN}🔧 Updating pip packages...${NC}"
+                python3 -m pip list --outdated --format=freeze 2>/dev/null | cut -d= -f1 | \
+                    xargs -n1 python3 -m pip install -U 2>/dev/null || true
+            elif command -v pip >/dev/null 2>&1; then
+                echo -e "${GREEN}🔧 Updating pip packages...${NC}"
+                pip list --outdated --format=freeze 2>/dev/null | cut -d= -f1 | \
+                    xargs -n1 pip install -U 2>/dev/null || true
+            fi
+
+            if command -v rustup >/dev/null 2>&1; then
+                echo -e "${GREEN}🔧 Updating rustup toolchains...${NC}"
+                rustup update
+            fi
+
+            echo -e "${GREEN}✅ Updates complete${NC}"
+            UPDATE_CACHE_TIME=0
+            updates_refresh_cache
+            ;;
+        *)
+            ;;
+    esac
 }
 
 # ============================================================================
@@ -2876,5 +3185,3 @@ deploy_github_project() {
     log INFO "Successfully deployed GitHub project: $repo_name"
     return 0
 }
-
-
