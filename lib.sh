@@ -348,13 +348,24 @@ cleanup_disk_light() {
     rm -rf "$HOME/.cache/yarn" \
         "$HOME/.cache/pip" \
         "$HOME/.cache/pnpm" \
-        "$HOME/.npm/_cacache" 2>/dev/null || true
+        "$HOME/.npm/_cacache" \
+        "$HOME/.chromium-browser-snapshots" \
+        "$HOME/.rustup/tmp"/* 2>/dev/null || true
 }
 
 cleanup_disk_aggressive() {
     cleanup_disk_light
     rm -rf "$HOME/.npm" \
-        "$HOME/.local/share/pnpm" 2>/dev/null || true
+        "$HOME/.local/share/pnpm" \
+        "$HOME/.cache" 2>/dev/null || true
+    # Clean Rust/Tauri build artifacts (target/ dirs)
+    local dir
+    for dir in "$HOME"/*/src-tauri/target "$HOME"/*/target; do
+        if [ -d "$dir" ] && [ -f "${dir%/target}/Cargo.toml" ]; then
+            echo -e "  ${CYAN}Cleaning${NC} $dir"
+            rm -rf "$dir" 2>/dev/null || true
+        fi
+    done
 }
 
 disk_cleanup_menu() {
@@ -387,6 +398,8 @@ disk_cleanup_menu() {
         echo -e "  ${CYAN}•${NC} ~/.cache/pip"
         echo -e "  ${CYAN}•${NC} ~/.cache/pnpm"
         echo -e "  ${CYAN}•${NC} ~/.npm/_cacache"
+        echo -e "  ${CYAN}•${NC} ~/.chromium-browser-snapshots"
+        echo -e "  ${CYAN}•${NC} ~/.rustup/tmp/*"
         echo ""
         if ! ui_confirm "Proceed with light cleanup?"; then
             echo -e "${BLUE}Cancelled${NC}"
@@ -395,12 +408,12 @@ disk_cleanup_menu() {
         cleanup_disk_light
     else
         echo -e "${YELLOW}This will remove:${NC}"
-        echo -e "  ${CYAN}•${NC} ~/.cache/yarn"
-        echo -e "  ${CYAN}•${NC} ~/.cache/pip"
-        echo -e "  ${CYAN}•${NC} ~/.cache/pnpm"
-        echo -e "  ${CYAN}•${NC} ~/.npm/_cacache"
+        echo -e "  ${CYAN}•${NC} ~/.cache (entire cache directory)"
         echo -e "  ${CYAN}•${NC} ~/.npm"
         echo -e "  ${CYAN}•${NC} ~/.local/share/pnpm"
+        echo -e "  ${CYAN}•${NC} ~/.chromium-browser-snapshots"
+        echo -e "  ${CYAN}•${NC} ~/.rustup/tmp/*"
+        echo -e "  ${CYAN}•${NC} Rust/Tauri target/ build artifacts"
         echo ""
         if ! ui_confirm "Proceed with aggressive cleanup?"; then
             echo -e "${BLUE}Cancelled${NC}"
@@ -1437,7 +1450,8 @@ resolve_project_path() {
     local identifier=$1
 
     # Case 1: Identifier is already an absolute path
-    if [[ "$identifier" == /* && -d "$identifier" && -d "$identifier/.flox" ]]; then
+    # Accept paths with OR without .flox — env_start handles Flox initialization
+    if [[ "$identifier" == /* && -d "$identifier" ]]; then
         echo "$identifier"
         return 0
     fi
@@ -2199,7 +2213,9 @@ detect_dev_command() {
                     echo "$pm_cmd dev -- --port \$PORT"
                     ;;
                 next)
-                    echo "$pm_cmd dev -p \$PORT"
+                    # Next.js reads PORT env var natively - no -p flag needed
+                    # Using -p with pnpm causes quoting issues ("-p" "3023")
+                    echo "$pm_cmd dev"
                     ;;
                 vite)
                     echo "$pm_cmd dev -- --port \$PORT --host"
