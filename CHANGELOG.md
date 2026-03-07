@@ -1,5 +1,13 @@
 # BuildFlowz Changelog
 
+## [2026-03-07] - Disk Cleanup & Dev Command Fixes
+
+### Changed
+- Disk cleanup (light): now also removes `~/.chromium-browser-snapshots` and `~/.rustup/tmp/*`
+- Disk cleanup (aggressive): clears entire `~/.cache`, finds and removes Rust/Tauri `target/` build artifacts
+- `resolve_project_path()`: accepts directories without `.flox` — `env_start` handles Flox initialization
+- Next.js dev command: uses `PORT` env var natively instead of `-p` flag (fixes pnpm quoting issues)
+
 ## [2026-01-24] - Security & Robustness Improvements
 
 ### ✅ Priority 1 Tasks Completed
