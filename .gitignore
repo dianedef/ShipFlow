@@ -10,3 +10,6 @@ pm2-*.json
 
 # Crush cache
 .crush/
+
+# Nested data repo (separate git repo — private data)
+ShipFlow/

@@ -23,7 +23,7 @@ print_header() {
         status_right="Up: $MENU_STATUS_UPDATES_TOTAL"
     fi
 
-    ui_header "BuildFlowz DevServer" "Development Environment" "$status_left" "$status_right"
+    ui_header "Shipflow DevServer" "Development Environment" "$status_left" "$status_right"
 
     if [ "${MENU_STATUS_LOW_SPACE:-0}" = "1" ]; then
         echo -e "${RED}⚠️  Low disk space. Consider running Disk Cleanup.${NC}"
@@ -41,9 +41,10 @@ print_header() {
 show_menu() {
     echo -e "${BLUE}📊 OVERVIEW${NC}"
     echo -e "  ${CYAN}1)${NC} Dashboard - View all environments at once"
+    echo -e "  ${CYAN}s)${NC} ShipFlow - Tasks · Priorities · Changelog · Audit"
     echo ""
     echo -e "${BLUE}🚀 MANAGE${NC}"
-    echo -e "  ${CYAN}2)${NC} Start/Deploy - Launch or deploy environment"
+    echo -e "  ${CYAN}2)${NC} Deploy - Launch or deploy environment"
     echo -e "  ${CYAN}3)${NC} Restart - Restart an environment"
     echo -e "  ${CYAN}4)${NC} Stop - Stop an environment"
     echo -e "  ${CYAN}5)${NC} Remove - Delete an environment"
@@ -58,6 +59,104 @@ show_menu() {
     echo ""
     echo -e "  ${CYAN}0)${NC} Exit"
     echo ""
+}
+
+# ShipFlow overview — Tasks, Priorities, Changelog, Audit Log
+show_shipflow_menu() {
+    local SHIPFLOW_DATA="${SHIPFLOW_DATA_DIR:-/home/claude/ShipFlow/ShipFlow}"
+    local TASKS_FILE="$SHIPFLOW_DATA/TASKS.md"
+    local AUDIT_FILE="$SHIPFLOW_DATA/AUDIT_LOG.md"
+    local CHANGELOG_FILE="$(dirname "${BASH_SOURCE[0]}")/CHANGELOG.md"
+
+    while true; do
+        clear
+        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo -e "               ${YELLOW}⚡ ShipFlow Overview${NC}"
+        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo ""
+
+        # Mini dashboard: show project table from TASKS.md
+        if [ -f "$TASKS_FILE" ]; then
+            grep -E "^\| [0-9]+" "$TASKS_FILE" 2>/dev/null | head -12 | while IFS= read -r line; do
+                echo -e "  $line"
+            done
+            echo ""
+        fi
+
+        echo -e "${GREEN}Choose:${NC}"
+        echo ""
+        echo -e "  ${CYAN}1)${NC} 📋 Tasks       — Browse all projects & tasks"
+        echo -e "  ${CYAN}2)${NC} 🔴 Priorities  — Show P0 & P1 tasks only"
+        echo -e "  ${CYAN}3)${NC} 📝 Changelog   — View recent changes"
+        echo -e "  ${CYAN}4)${NC} 📊 Audit Log   — Review quality scores"
+        echo ""
+        echo -e "  ${CYAN}0)${NC} ← Back"
+        echo ""
+        echo -e "${YELLOW}Your choice:${NC} \c"
+        read -r sf_choice
+
+        case $sf_choice in
+            1)
+                if [ -f "$TASKS_FILE" ]; then
+                    less -R "$TASKS_FILE"
+                else
+                    echo -e "${RED}❌ TASKS.md not found at:${NC} $TASKS_FILE"
+                    sleep 2
+                fi
+                ;;
+            2)
+                if [ -f "$TASKS_FILE" ]; then
+                    clear
+                    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+                    echo -e "       ${RED}🔴 P0 Blockers${NC}  &  ${YELLOW}🟠 P1 High Priority${NC}"
+                    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+                    echo ""
+                    local current_project=""
+                    while IFS= read -r line; do
+                        if echo "$line" | grep -qE "^## [0-9]+\."; then
+                            current_project=$(echo "$line" | sed 's/^## //')
+                        fi
+                        if echo "$line" | grep -qE "^\| (🔴|🟠)"; then
+                            if [ -n "$current_project" ]; then
+                                echo -e "${BLUE}── $current_project${NC}"
+                                current_project=""
+                            fi
+                            echo "  $line"
+                        fi
+                    done < "$TASKS_FILE"
+                    echo ""
+                    echo -e "${YELLOW}Press Enter to continue...${NC}"
+                    read -r
+                else
+                    echo -e "${RED}❌ TASKS.md not found${NC}"
+                    sleep 2
+                fi
+                ;;
+            3)
+                if [ -f "$CHANGELOG_FILE" ]; then
+                    less -R "$CHANGELOG_FILE"
+                else
+                    echo -e "${RED}❌ CHANGELOG.md not found at:${NC} $CHANGELOG_FILE"
+                    sleep 2
+                fi
+                ;;
+            4)
+                if [ -f "$AUDIT_FILE" ]; then
+                    less -R "$AUDIT_FILE"
+                else
+                    echo -e "${RED}❌ AUDIT_LOG.md not found at:${NC} $AUDIT_FILE"
+                    sleep 2
+                fi
+                ;;
+            0|q|Q)
+                return 0
+                ;;
+            *)
+                echo -e "${RED}❌ Invalid option${NC}"
+                sleep 1
+                ;;
+        esac
+    done
 }
 
 # Help documentation (paginated)
@@ -83,7 +182,7 @@ show_help() {
                 echo -e "         (or clone from GitHub using option 2 → 3)"
                 echo ""
                 echo -e "  ${CYAN}Step 2:${NC} ${GREEN}Start your project${NC}"
-                echo -e "         From main menu, press ${YELLOW}2${NC} (Start/Deploy)"
+                echo -e "         From main menu, press ${YELLOW}2${NC} (Deploy)"
                 echo -e "         Then press ${YELLOW}1${NC} (Auto-detect)"
                 echo -e "         Select your project from the list"
                 echo ""
@@ -96,7 +195,7 @@ show_help() {
                 echo ""
                 echo -e "${BLUE}┌───────────────────────────────────────────────────────────────┐${NC}"
                 echo -e "${BLUE}│${NC} ${YELLOW}Quick Reference:${NC}                                              ${BLUE}│${NC}"
-                echo -e "${BLUE}│${NC}   ${CYAN}1${NC} Dashboard  ${CYAN}2${NC} Start  ${CYAN}3${NC} Restart  ${CYAN}4${NC} Stop  ${CYAN}5${NC} Remove      ${BLUE}│${NC}"
+                echo -e "${BLUE}│${NC}   ${CYAN}1${NC} Dashboard  ${CYAN}2${NC} Deploy  ${CYAN}3${NC} Restart  ${CYAN}4${NC} Stop  ${CYAN}5${NC} Remove     ${BLUE}│${NC}"
                 echo -e "${BLUE}│${NC}   ${CYAN}6${NC} StopAll  ${CYAN}7${NC} StartAll  ${CYAN}8${NC} RestartAll              ${BLUE}│${NC}"
                 echo -e "${BLUE}│${NC}   ${CYAN}9${NC} Advanced  ${CYAN}0${NC} Exit                                ${BLUE}│${NC}"
                 echo -e "${BLUE}└───────────────────────────────────────────────────────────────┘${NC}"
@@ -554,9 +653,14 @@ main() {
                 show_dashboard
                 ;;
 
+            s|S)
+                # ShipFlow overview
+                show_shipflow_menu
+                ;;
+
             2)
-                # Start/Deploy
-                echo -e "${GREEN}🚀 Start/Deploy Environment${NC}"
+                # Deploy
+                echo -e "${GREEN}🚀 Deploy Environment${NC}"
                 echo ""
                 echo -e "${BLUE}Choose source:${NC}"
                 echo ""
