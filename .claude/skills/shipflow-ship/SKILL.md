@@ -64,6 +64,29 @@ cd /home/claude/ShipFlow && git add -A && git diff --cached --quiet || git commi
 
 This is silent housekeeping — don't report it unless it fails.
 
+### Final: delivery report
+
+After everything is done (commit pushed, changelog updated, ShipFlow synced), output a delivery report in English using this exact format:
+
+```
+All pushed. Here's what was shipped in this commit:
+
+  What's in [SHORT_SHA]
+  - [bullet 1: one-line description of a change]
+  - [bullet 2]
+  - [bullet 3]
+  - ... (one bullet per logical change, based on the diff)
+
+  Next priorities (TASKS.md):
+  1. [emoji] [top priority task]
+  2. [emoji] [second priority task]
+  3. [emoji] [third priority task]
+```
+
+- `[SHORT_SHA]` = the short commit hash (7 chars) from `git log --oneline -1`
+- Bullets = derived from the actual diff — be specific and concrete, not vague
+- Priorities = pulled from TASKS.md (top 3 non-completed items, with appropriate emoji: 🔴 urgent, 🟡 in progress, 🟢 ready, ⚪ backlog)
+
 ### Important
 
 - Do all of the above in a single message using parallel tool calls where possible.
