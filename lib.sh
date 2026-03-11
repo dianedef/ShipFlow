@@ -3339,6 +3339,42 @@ CHANGELOG_EOF
             echo "| $project_name | $project_dir | $stack |" >> "$projects_file"
     fi
 
+    # Configure codebase-mcp for this project
+    local mcp_server="/home/claude/ShipFlow/tools/codebase-mcp/server.py"
+    if [ -f "$mcp_server" ]; then
+        local claude_dir="$project_dir/.claude"
+        local settings_file="$claude_dir/settings.json"
+        mkdir -p "$claude_dir"
+        if [ ! -f "$settings_file" ]; then
+            cat > "$settings_file" << MCP_EOF
+{
+  "mcpServers": {
+    "codebase": {
+      "command": "python3",
+      "args": ["$mcp_server", "$project_dir"]
+    }
+  }
+}
+MCP_EOF
+            log INFO "Configured codebase-mcp for $project_name"
+        elif ! grep -q "codebase-mcp" "$settings_file"; then
+            # settings.json exists but no codebase entry — merge it
+            local tmp_file
+            tmp_file=$(mktemp)
+            python3 -c "
+import json, sys
+with open('$settings_file') as f:
+    cfg = json.load(f)
+cfg.setdefault('mcpServers', {})['codebase'] = {
+    'command': 'python3',
+    'args': ['$mcp_server', '$project_dir']
+}
+print(json.dumps(cfg, indent=2))
+" > "$tmp_file" && mv "$tmp_file" "$settings_file"
+            log INFO "Merged codebase-mcp into existing settings.json for $project_name"
+        fi
+    fi
+
     echo -e "${GREEN}📋 ShipFlow tracking initialized for $project_name${NC}"
 }
 

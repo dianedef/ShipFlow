@@ -1,5 +1,5 @@
 ---
-name: context-prime
+name: shipflow-context
 description: Prime context for a task — calls context_continue + context_retrieve to find relevant files before starting work. Minimizes token usage by reusing cached context and only reading what's needed.
 argument-hint: <what you want to do>
 ---
