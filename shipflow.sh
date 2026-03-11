@@ -29,7 +29,7 @@ print_header() {
     fi
 
     # Display session identity banner if enabled
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" = "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" = "true" ]; then
         init_session 2>/dev/null
         display_session_banner
         echo ""

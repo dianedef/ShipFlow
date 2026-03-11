@@ -15,7 +15,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Configuration file for saved connections
-CONFIG_DIR="$HOME/.buildflowz"
+CONFIG_DIR="$HOME/.shipflow"
 CONNECTIONS_FILE="$CONFIG_DIR/connections.conf"
 CURRENT_CONNECTION_FILE="$CONFIG_DIR/current_connection"
 

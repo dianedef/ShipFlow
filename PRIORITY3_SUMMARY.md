@@ -1,4 +1,4 @@
-# 🎯 BuildFlowz - Priority 3 Implementation Summary
+# 🎯 ShipFlow - Priority 3 Implementation Summary
 
 **Date:** 2026-01-24
 **Status:** ✅ Complete
@@ -25,8 +25,8 @@ All four Priority 3 tasks have been successfully implemented and tested!
 1. **Configuration Support:**
 ```bash
 # config.sh
-export BUILDFLOWZ_PREFER_JQ=true
-export BUILDFLOWZ_OPTIONAL_TOOLS=("flox" "git" "jq" "python3")
+export SHIPFLOW_PREFER_JQ=true
+export SHIPFLOW_OPTIONAL_TOOLS=("flox" "git" "jq" "python3")
 ```
 
 2. **Updated PM2 Cache Function:**
@@ -98,8 +98,8 @@ register_temp_file "/tmp/myfile"
 3. **Configuration:**
 ```bash
 # config.sh
-export BUILDFLOWZ_STRICT_MODE=false  # set -euo pipefail
-export BUILDFLOWZ_ERROR_TRAPS=true   # Enable error traps
+export SHIPFLOW_STRICT_MODE=false  # set -euo pipefail
+export SHIPFLOW_ERROR_TRAPS=true   # Enable error traps
 ```
 
 **Features:**
@@ -350,7 +350,7 @@ Created comprehensive test suite: `test_priority3.sh`
 sudo apt install jq
 
 # Verify it's being used
-export BUILDFLOWZ_PREFER_JQ=true
+export SHIPFLOW_PREFER_JQ=true
 ./menu.sh
 # Now JSON parsing uses jq (2-5x faster)
 ```
@@ -359,8 +359,8 @@ export BUILDFLOWZ_PREFER_JQ=true
 
 ```bash
 # Enable strict error handling
-export BUILDFLOWZ_STRICT_MODE=true
-export BUILDFLOWZ_ERROR_TRAPS=true
+export SHIPFLOW_STRICT_MODE=true
+export SHIPFLOW_ERROR_TRAPS=true
 
 ./menu.sh
 # Now: set -euo pipefail is active
@@ -371,10 +371,10 @@ export BUILDFLOWZ_ERROR_TRAPS=true
 
 ```bash
 # Read documentation inline
-less /root/BuildFlowz/lib.sh
+less /root/ShipFlow/lib.sh
 
 # Search for specific function docs
-grep -A 20 "^# function_name" /root/BuildFlowz/lib.sh
+grep -A 20 "^# function_name" /root/ShipFlow/lib.sh
 ```
 
 ### Example 4: Temp File Management

@@ -1,5 +1,5 @@
 #!/bin/bash
-# BuildFlowz Configuration File
+# ShipFlow Configuration File
 # Centralized configuration for all scripts
 
 # ============================================================================
@@ -8,192 +8,189 @@
 
 # Main projects directory where environments are created
 # Defaults to $HOME (works for any user: /root for root, /home/user for others)
-export BUILDFLOWZ_PROJECTS_DIR="${BUILDFLOWZ_PROJECTS_DIR:-$HOME}"
+export SHIPFLOW_PROJECTS_DIR="${SHIPFLOW_PROJECTS_DIR:-$HOME}"
 
 # Allowed safe directories for project paths
-export BUILDFLOWZ_SAFE_DIRS=("/root" "/home" "/opt")
+export SHIPFLOW_SAFE_DIRS=("/root" "/home" "/opt")
 
 # Maximum depth for searching projects
-export BUILDFLOWZ_MAX_SEARCH_DEPTH=4
+export SHIPFLOW_MAX_SEARCH_DEPTH=4
 
 # ============================================================================
 # PORT CONFIGURATION
 # ============================================================================
 
 # Port range for PM2 applications
-export BUILDFLOWZ_PORT_RANGE_START=3000
-export BUILDFLOWZ_PORT_RANGE_END=3100
-export BUILDFLOWZ_PORT_MAX_ATTEMPTS=100
+export SHIPFLOW_PORT_RANGE_START="${SHIPFLOW_PORT_RANGE_START:-3000}"
+export SHIPFLOW_PORT_RANGE_END="${SHIPFLOW_PORT_RANGE_END:-3100}"
+export SHIPFLOW_PORT_MAX_ATTEMPTS="${SHIPFLOW_PORT_MAX_ATTEMPTS:-100}"
 
 # ============================================================================
 # SSH TUNNEL CONFIGURATION
 # ============================================================================
 
 # SSH keep-alive settings
-export BUILDFLOWZ_SSH_KEEPALIVE_INTERVAL=30
-export BUILDFLOWZ_SSH_KEEPALIVE_MAX=3
+export SHIPFLOW_SSH_KEEPALIVE_INTERVAL="${SHIPFLOW_SSH_KEEPALIVE_INTERVAL:-30}"
+export SHIPFLOW_SSH_KEEPALIVE_MAX="${SHIPFLOW_SSH_KEEPALIVE_MAX:-3}"
 
 # Default SSH configuration
-export BUILDFLOWZ_SSH_REMOTE_USER="${BUILDFLOWZ_SSH_REMOTE_USER:-root}"
-export BUILDFLOWZ_SSH_REMOTE_HOST="${BUILDFLOWZ_SSH_REMOTE_HOST:-hetzner}"
+export SHIPFLOW_SSH_REMOTE_USER="${SHIPFLOW_SSH_REMOTE_USER:-root}"
+export SHIPFLOW_SSH_REMOTE_HOST="${SHIPFLOW_SSH_REMOTE_HOST:-hetzner}"
 
 # ============================================================================
 # LOGGING CONFIGURATION
 # ============================================================================
 
 # Enable/disable logging (true/false)
-export BUILDFLOWZ_LOGGING_ENABLED="${BUILDFLOWZ_LOGGING_ENABLED:-true}"
+export SHIPFLOW_LOGGING_ENABLED="${SHIPFLOW_LOGGING_ENABLED:-true}"
 
 # Log file location (defaults to user's home directory for proper permissions)
-export BUILDFLOWZ_LOG_DIR="${BUILDFLOWZ_LOG_DIR:-$HOME/.buildflowz/logs}"
-export BUILDFLOWZ_LOG_FILE="${BUILDFLOWZ_LOG_DIR}/buildflowz.log"
+export SHIPFLOW_LOG_DIR="${SHIPFLOW_LOG_DIR:-$HOME/.shipflow/logs}"
+export SHIPFLOW_LOG_FILE="${SHIPFLOW_LOG_FILE:-$SHIPFLOW_LOG_DIR/shipflow.log}"
 
 # Log retention (days)
-export BUILDFLOWZ_LOG_RETENTION_DAYS=30
+export SHIPFLOW_LOG_RETENTION_DAYS="${SHIPFLOW_LOG_RETENTION_DAYS:-30}"
 
 # Log level (DEBUG, INFO, WARNING, ERROR)
-export BUILDFLOWZ_LOG_LEVEL="${BUILDFLOWZ_LOG_LEVEL:-INFO}"
+export SHIPFLOW_LOG_LEVEL="${SHIPFLOW_LOG_LEVEL:-INFO}"
 
 # ============================================================================
 # GITHUB CONFIGURATION
 # ============================================================================
 
 # Number of repos to list from GitHub
-export BUILDFLOWZ_GITHUB_REPO_LIMIT=500
+export SHIPFLOW_GITHUB_REPO_LIMIT="${SHIPFLOW_GITHUB_REPO_LIMIT:-500}"
 
 # ============================================================================
 # WEB INSPECTOR CONFIGURATION
 # ============================================================================
 
 # Screenshot upload expiration (seconds)
-export BUILDFLOWZ_SCREENSHOT_EXPIRATION=600
+export SHIPFLOW_SCREENSHOT_EXPIRATION="${SHIPFLOW_SCREENSHOT_EXPIRATION:-600}"
 
 # ImgBB API key (free service)
-export BUILDFLOWZ_IMGBB_API_KEY="${BUILDFLOWZ_IMGBB_API_KEY:-e6b9a93df250481a8cd214fbfbb8e7ba}"
+export SHIPFLOW_IMGBB_API_KEY="${SHIPFLOW_IMGBB_API_KEY:-e6b9a93df250481a8cd214fbfbb8e7ba}"
 
 # ============================================================================
 # PERFORMANCE CONFIGURATION
 # ============================================================================
 
 # Enable PM2 data caching (reduces subprocess overhead)
-export BUILDFLOWZ_PM2_CACHE_ENABLED="${BUILDFLOWZ_PM2_CACHE_ENABLED:-true}"
+export SHIPFLOW_PM2_CACHE_ENABLED="${SHIPFLOW_PM2_CACHE_ENABLED:-true}"
 
 # Cache TTL in seconds
-export BUILDFLOWZ_PM2_CACHE_TTL=5
+export SHIPFLOW_PM2_CACHE_TTL="${SHIPFLOW_PM2_CACHE_TTL:-5}"
 
 # Prefer jq over python for JSON parsing (faster)
-export BUILDFLOWZ_PREFER_JQ="${BUILDFLOWZ_PREFER_JQ:-true}"
+export SHIPFLOW_PREFER_JQ="${SHIPFLOW_PREFER_JQ:-true}"
 
 # ============================================================================
 # DISK SPACE CONFIGURATION
 # ============================================================================
 
 # Low disk warning threshold in GB (shows alert in menu header)
-export BUILDFLOWZ_DISK_WARN_GB="${BUILDFLOWZ_DISK_WARN_GB:-5}"
+export SHIPFLOW_DISK_WARN_GB="${SHIPFLOW_DISK_WARN_GB:-5}"
 
 # Menu status cache TTL in seconds (free space + update counts)
-export BUILDFLOWZ_MENU_STATUS_CACHE_TTL="${BUILDFLOWZ_MENU_STATUS_CACHE_TTL:-120}"
+export SHIPFLOW_MENU_STATUS_CACHE_TTL="${SHIPFLOW_MENU_STATUS_CACHE_TTL:-120}"
 
 # ============================================================================
 # TOOL REQUIREMENTS
 # ============================================================================
 
 # Critical tools (script fails if missing)
-export BUILDFLOWZ_REQUIRED_TOOLS=("pm2" "node")
+export SHIPFLOW_REQUIRED_TOOLS=("pm2" "node")
 
 # Optional tools (warnings only)
 # jq is preferred over python3 for JSON parsing (faster)
-export BUILDFLOWZ_OPTIONAL_TOOLS=("flox" "git" "jq" "python3")
+export SHIPFLOW_OPTIONAL_TOOLS=("flox" "git" "jq" "python3")
 
 # ============================================================================
 # FLOX CONFIGURATION
 # ============================================================================
 
 # Default Flox packages to install for each project type
-export BUILDFLOWZ_FLOX_NODEJS_PACKAGES="nodejs"
-export BUILDFLOWZ_FLOX_PYTHON_PACKAGES="python3 python3Packages.pip"
-export BUILDFLOWZ_FLOX_RUST_PACKAGES="rustc cargo"
-export BUILDFLOWZ_FLOX_GO_PACKAGES="go"
+export SHIPFLOW_FLOX_NODEJS_PACKAGES="nodejs"
+export SHIPFLOW_FLOX_PYTHON_PACKAGES="python3 python3Packages.pip"
+export SHIPFLOW_FLOX_RUST_PACKAGES="rustc cargo"
+export SHIPFLOW_FLOX_GO_PACKAGES="go"
 
 # ============================================================================
 # VALIDATION CONFIGURATION
 # ============================================================================
 
 # Regex for valid environment names
-export BUILDFLOWZ_ENV_NAME_REGEX="^[a-zA-Z0-9._-]+$"
+export SHIPFLOW_ENV_NAME_REGEX="^[a-zA-Z0-9._-]+$"
 
 # Regex for dangerous path characters
-export BUILDFLOWZ_DANGEROUS_CHARS_REGEX='[\;\&\|\$\`]'
+export SHIPFLOW_DANGEROUS_CHARS_REGEX='[\;\&\|\$\`]'
 
 # ============================================================================
 # CADDY CONFIGURATION
 # ============================================================================
 
 # Caddyfile location
-export BUILDFLOWZ_CADDYFILE="/etc/caddy/Caddyfile"
+export SHIPFLOW_CADDYFILE="${SHIPFLOW_CADDYFILE:-/etc/caddy/Caddyfile}"
 
 # ============================================================================
 # SECRETS / CREDENTIAL CACHE CONFIGURATION
 # ============================================================================
 
 # Directory for storing cached credentials (chmod 700)
-export BUILDFLOWZ_SECRETS_DIR="${BUILDFLOWZ_SECRETS_DIR:-$HOME/.buildflowz}"
+export SHIPFLOW_SECRETS_DIR="${SHIPFLOW_SECRETS_DIR:-$HOME/.shipflow}"
 
 # ============================================================================
 # SESSION IDENTITY CONFIGURATION
 # ============================================================================
 
 # Session directory for storing identity files
-export BUILDFLOWZ_SESSION_DIR="${BUILDFLOWZ_SESSION_DIR:-$HOME/.buildflowz/session}"
+export SHIPFLOW_SESSION_DIR="${SHIPFLOW_SESSION_DIR:-$SHIPFLOW_SECRETS_DIR/session}"
 
 # Enable/disable session identity display
-export BUILDFLOWZ_SESSION_ENABLED="${BUILDFLOWZ_SESSION_ENABLED:-true}"
+export SHIPFLOW_SESSION_ENABLED="${SHIPFLOW_SESSION_ENABLED:-true}"
 
 # ============================================================================
 # ERROR HANDLING CONFIGURATION
 # ============================================================================
 
 # Enable strict error handling (set -euo pipefail equivalent)
-export BUILDFLOWZ_STRICT_MODE="${BUILDFLOWZ_STRICT_MODE:-false}"
+export SHIPFLOW_STRICT_MODE="${SHIPFLOW_STRICT_MODE:-false}"
 
 # Enable error traps (cleanup on failure)
-export BUILDFLOWZ_ERROR_TRAPS="${BUILDFLOWZ_ERROR_TRAPS:-true}"
+export SHIPFLOW_ERROR_TRAPS="${SHIPFLOW_ERROR_TRAPS:-true}"
 
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
 
 # Print configuration (for debugging)
-buildflowz_print_config() {
-    echo "BuildFlowz Configuration:"
-    echo "  Projects Dir: $BUILDFLOWZ_PROJECTS_DIR"
-    echo "  Port Range: $BUILDFLOWZ_PORT_RANGE_START-$BUILDFLOWZ_PORT_RANGE_END"
-    echo "  Logging: $BUILDFLOWZ_LOGGING_ENABLED"
-    echo "  Log File: $BUILDFLOWZ_LOG_FILE"
-    echo "  Log Level: $BUILDFLOWZ_LOG_LEVEL"
-    echo "  PM2 Cache: $BUILDFLOWZ_PM2_CACHE_ENABLED"
+shipflow_print_config() {
+    echo "ShipFlow Configuration:"
+    echo "  Projects Dir: $SHIPFLOW_PROJECTS_DIR"
+    echo "  Port Range: $SHIPFLOW_PORT_RANGE_START-$SHIPFLOW_PORT_RANGE_END"
+    echo "  Logging: $SHIPFLOW_LOGGING_ENABLED"
+    echo "  Log File: $SHIPFLOW_LOG_FILE"
+    echo "  Log Level: $SHIPFLOW_LOG_LEVEL"
+    echo "  PM2 Cache: $SHIPFLOW_PM2_CACHE_ENABLED"
 }
 
 # Validate configuration
-buildflowz_validate_config() {
+shipflow_validate_config() {
     local errors=0
 
-    # Check projects directory exists
-    if [ ! -d "$BUILDFLOWZ_PROJECTS_DIR" ]; then
-        echo "ERROR: Projects directory does not exist: $BUILDFLOWZ_PROJECTS_DIR"
+    if [ ! -d "$SHIPFLOW_PROJECTS_DIR" ]; then
+        echo "ERROR: Projects directory does not exist: $SHIPFLOW_PROJECTS_DIR"
         ((errors++))
     fi
 
-    # Check port range is valid
-    if [ "$BUILDFLOWZ_PORT_RANGE_START" -ge "$BUILDFLOWZ_PORT_RANGE_END" ]; then
+    if [ "$SHIPFLOW_PORT_RANGE_START" -ge "$SHIPFLOW_PORT_RANGE_END" ]; then
         echo "ERROR: Invalid port range"
         ((errors++))
     fi
 
-    # Check log directory is writable
-    if [ "$BUILDFLOWZ_LOGGING_ENABLED" = "true" ]; then
-        mkdir -p "$BUILDFLOWZ_LOG_DIR" 2>/dev/null || {
-            echo "WARNING: Cannot create log directory: $BUILDFLOWZ_LOG_DIR"
+    if [ "$SHIPFLOW_LOGGING_ENABLED" = "true" ]; then
+        mkdir -p "$SHIPFLOW_LOG_DIR" 2>/dev/null || {
+            echo "WARNING: Cannot create log directory: $SHIPFLOW_LOG_DIR"
         }
     fi
 

@@ -12,7 +12,7 @@
         script.src = 'https://cdn.jsdelivr.net/npm/eruda';
         script.onload = function() {
             eruda.init();
-            console.log('BuildFlowz: Eruda console loaded');
+            console.log('ShipFlow: Eruda console loaded');
         };
         document.head.appendChild(script);
     })();
@@ -29,14 +29,14 @@
     }
 
     function captureElement(el) {
-        el.classList.remove('buildflowz-outline');
-        var btns = el.querySelectorAll('.buildflowz-button');
+        el.classList.remove('shipflow-outline');
+        var btns = el.querySelectorAll('.shipflow-button');
         btns.forEach(function(b) { b.style.display = 'none'; });
 
         return loadHtml2Canvas().then(function(html2canvas) {
             return html2canvas(el, { useCORS: true });
         }).finally(function() {
-            el.classList.add('buildflowz-outline');
+            el.classList.add('shipflow-outline');
             btns.forEach(function(b) { b.style.display = ''; });
         });
     }
@@ -56,7 +56,7 @@
     function screenshotDownload(el) {
         captureElement(el).then(function(canvas) {
             var link = document.createElement('a');
-            link.download = 'buildflowz-screenshot.png';
+            link.download = 'shipflow-screenshot.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
             console.log('Screenshot downloaded');
@@ -89,16 +89,16 @@
     }
 
     function showScreenshotMenu(el, x, y) {
-        console.log('BuildFlowz: showScreenshotMenu called at', x, y);
-        var existing = document.getElementById('buildflowz-screenshot-menu');
+        console.log('ShipFlow: showScreenshotMenu called at', x, y);
+        var existing = document.getElementById('shipflow-screenshot-menu');
         if (existing) existing.remove();
 
         var menu = document.createElement('div');
-        menu.id = 'buildflowz-screenshot-menu';
+        menu.id = 'shipflow-screenshot-menu';
         menu.style.cssText = 'position:fixed;z-index:99999;background:#222;border-radius:8px;padding:4px 0;box-shadow:0 4px 16px rgba(0,0,0,.4);font-family:system-ui,sans-serif;font-size:14px;min-width:180px;';
         menu.style.left = x + 'px';
         menu.style.top = y + 'px';
-        console.log('BuildFlowz: Menu created and positioned');
+        console.log('ShipFlow: Menu created and positioned');
 
         var items = [
             { label: 'Copier (clipboard)', action: function() { screenshotCopyClipboard(el); } },
@@ -213,7 +213,7 @@
         var depth = 0;
         var parent = el.parentElement;
         while (parent) {
-            if (parent.classList && parent.classList.contains('buildflowz-outline')) {
+            if (parent.classList && parent.classList.contains('shipflow-outline')) {
                 depth++;
             }
             parent = parent.parentElement;
@@ -250,10 +250,10 @@
 
         styleElement = document.createElement('style');
         styleElement.textContent = '\
-        .buildflowz-outline {\
+        .shipflow-outline {\
             position: relative;\
         }\
-        .buildflowz-button {\
+        .shipflow-button {\
             position: absolute;\
             top: 0;\
             transform-origin: left bottom;\
@@ -274,7 +274,7 @@
         var divs = document.querySelectorAll('div');
         var maxDepth = 0;
         divs.forEach(function(div) {
-            div.classList.add('buildflowz-outline');
+            div.classList.add('shipflow-outline');
             var d = getNestingDepth(div);
             if (d > maxDepth) maxDepth = d;
         });
@@ -290,7 +290,7 @@
 
             var button = document.createElement('button');
             button.textContent = index + 1;
-            button.classList.add('buildflowz-button');
+            button.classList.add('shipflow-button');
             button.setAttribute('data-depth', depth);
             button.style.left = leftPercent + '%';
             button.style.background = color;
@@ -309,7 +309,7 @@
                     var touch = e.touches ? e.touches[0] : e;
                     var px = touch.clientX;
                     var py = touch.clientY;
-                    console.log('BuildFlowz: Press started');
+                    console.log('ShipFlow: Press started');
 
                     // Visual feedback
                     btn.style.transform = 'scale(0.9)';
@@ -317,7 +317,7 @@
 
                     pressTimer = setTimeout(function() {
                         longPressed = true;
-                        console.log('BuildFlowz: Long press detected, showing menu');
+                        console.log('ShipFlow: Long press detected, showing menu');
                         // Haptic feedback for long press
                         if (navigator.vibrate) navigator.vibrate(50);
                         showScreenshotMenu(targetDiv, px, py);
@@ -328,7 +328,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     clearTimeout(pressTimer);
-                    console.log('BuildFlowz: Press ended, longPressed=' + longPressed);
+                    console.log('ShipFlow: Press ended, longPressed=' + longPressed);
 
                     // Reset visual feedback
                     btn.style.transform = 'scale(1)';
@@ -345,7 +345,7 @@
                 }
 
                 function cancelPress(e) {
-                    console.log('BuildFlowz: Press cancelled');
+                    console.log('ShipFlow: Press cancelled');
                     clearTimeout(pressTimer);
                 }
 
@@ -384,8 +384,8 @@
         });
         buttons.length = 0;
 
-        document.querySelectorAll('.buildflowz-outline').forEach(function(div) {
-            div.classList.remove('buildflowz-outline');
+        document.querySelectorAll('.shipflow-outline').forEach(function(div) {
+            div.classList.remove('shipflow-outline');
             div.style.removeProperty('outline');
             div.style.removeProperty('outline-offset');
             div.style.removeProperty('box-shadow');
@@ -405,7 +405,7 @@
 
     function initToggleButton() {
         var toggleButton = document.createElement('button');
-        toggleButton.id = 'buildflowz-inspector-toggle';
+        toggleButton.id = 'shipflow-inspector-toggle';
         toggleButton.textContent = '\uD83D\uDD0D';
         toggleButton.title = 'Toggle Web Inspector';
         toggleButton.style.cssText = 'position:fixed;top:10px;right:10px;z-index:10000;background:#333;color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.3);';
@@ -413,8 +413,8 @@
         document.body.appendChild(toggleButton);
     }
 
-    if (!window.__buildflowzInspectorLoaded) {
-        window.__buildflowzInspectorLoaded = true;
+    if (!window.__shipflowInspectorLoaded) {
+        window.__shipflowInspectorLoaded = true;
         initToggleButton();
     }
 })();

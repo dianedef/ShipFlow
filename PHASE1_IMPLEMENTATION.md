@@ -389,7 +389,7 @@ All Phase 1 objectives completed:
 
 **Phase 1 implementation is COMPLETE!**
 
-The BuildFlowz menu now offers:
+The ShipFlow menu now offers:
 - **Better UX** - Clear organization, fewer options
 - **New features** - Dashboard, Restart, Logs
 - **Faster workflows** - Reduced clicks, faster operations

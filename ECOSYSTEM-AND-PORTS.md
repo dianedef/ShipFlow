@@ -2,7 +2,7 @@
 
 ## 📋 Vue d'ensemble
 
-BuildFlowz gère automatiquement les ports et crée des fichiers `ecosystem.config.cjs` persistants pour chaque projet, garantissant que les tunnels SSH locaux détectent tous les projets.
+ShipFlow gère automatiquement les ports et crée des fichiers `ecosystem.config.cjs` persistants pour chaque projet, garantissant que les tunnels SSH locaux détectent tous les projets.
 
 ---
 
@@ -25,7 +25,7 @@ BuildFlowz gère automatiquement les ports et crée des fichiers `ecosystem.conf
 
 ## 🏗️ Format du fichier généré
 
-Lors du démarrage d'un projet avec BuildFlowz, un fichier `ecosystem.config.cjs` est automatiquement créé :
+Lors du démarrage d'un projet avec ShipFlow, un fichier `ecosystem.config.cjs` est automatiquement créé :
 
 ```javascript
 module.exports = {
@@ -49,7 +49,7 @@ module.exports = {
 
 ### Comment ça fonctionne ?
 
-Quand vous démarrez un nouveau projet, BuildFlowz :
+Quand vous démarrez un nouveau projet, ShipFlow :
 
 1. **Détecte les ports déjà utilisés** (double vérification) :
    - ✅ Ports actifs en écoute (serveurs running)
@@ -67,7 +67,7 @@ Quand vous démarrez un nouveau projet, BuildFlowz :
 
 ### Persistance des ports
 
-Une fois qu'un port est assigné à un projet (soit manuellement, soit via l'allocation automatique), BuildFlowz le réutilisera pour ce projet lors des démarrages futurs. Le port est stocké dans le fichier `ecosystem.config.cjs` du projet.
+Une fois qu'un port est assigné à un projet (soit manuellement, soit via l'allocation automatique), ShipFlow le réutilisera pour ce projet lors des démarrages futurs. Le port est stocké dans le fichier `ecosystem.config.cjs` du projet.
 
 ### Sécurité anti-collision
 
@@ -115,7 +115,7 @@ test-project: PORT=3001 (stopped)
 ### Trouver le prochain port disponible
 
 ```bash
-source /root/BuildFlowz/lib.sh
+source /root/ShipFlow/lib.sh
 find_available_port 3000
 # Résultat: 3003 (ou le premier port libre)
 ```
@@ -130,7 +130,7 @@ cd /root
 git clone https://github.com/user/nouveau-projet.git
 ```
 
-### 2. Démarrer avec BuildFlowz
+### 2. Démarrer avec ShipFlow
 Le script automatiquement :
 - Détecte les ports 3000, 3001, 3002 déjà pris
 - Assigne le port 3003 au nouveau projet

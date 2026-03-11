@@ -1,4 +1,4 @@
-# 🎨 BuildFlowz UX Improvement Proposal
+# 🎨 ShipFlow UX Improvement Proposal
 
 **Date:** 2026-01-24
 **Current State:** 2 menus with 10-11 options each, significant redundancy
@@ -56,7 +56,7 @@ Reduce from **10 options to 7 core actions** with smart defaults:
 
 ```
 ╔══════════════════════════════════════════════════╗
-║               BuildFlowz DevServer               ║
+║               ShipFlow DevServer               ║
 ╚══════════════════════════════════════════════════╝
 
 📊 OVERVIEW
@@ -99,7 +99,7 @@ Group commands by purpose:
 
 ```
 ╔══════════════════════════════════════════════════╗
-║               BuildFlowz DevServer               ║
+║               ShipFlow DevServer               ║
 ╚══════════════════════════════════════════════════╝
 
 [VIEW]
@@ -135,7 +135,7 @@ Show different options based on current state:
 
 ```
 ╔══════════════════════════════════════════════════╗
-║               BuildFlowz DevServer               ║
+║               ShipFlow DevServer               ║
 ║             3 environments running               ║
 ╚══════════════════════════════════════════════════╝
 
@@ -318,14 +318,14 @@ Advanced → Batch Operations
 First time:
   Enter DuckDNS subdomain: myapp
   Enter DuckDNS token: ********
-  [✓] Save credentials? (stored in ~/.buildflowz/secrets) [y/N]
+  [✓] Save credentials? (stored in ~/.shipflow/secrets) [y/N]
 
 Next time:
   Using saved credentials: myapp.duckdns.org
   [Change credentials?]
 ```
 
-**Security:** Store in `~/.buildflowz/secrets` with chmod 600
+**Security:** Store in `~/.shipflow/secrets` with chmod 600
 
 ---
 
@@ -336,7 +336,7 @@ Full-screen TUI with live updates:
 
 ```
 ╔══════════════════════════════════════════════════╗
-║ BuildFlowz Dashboard                      ⟳ Auto║
+║ ShipFlow Dashboard                      ⟳ Auto║
 ╚══════════════════════════════════════════════════╝
 
 ┌─ Running Environments (3) ──────────────────────┐
@@ -458,7 +458,7 @@ Scanning environments...
 ### **After: Streamlined Menu (Option A)**
 ```
 ╔══════════════════════════════════════════════════╗
-║               BuildFlowz DevServer               ║
+║               ShipFlow DevServer               ║
 ╚══════════════════════════════════════════════════╝
 
 📊 OVERVIEW

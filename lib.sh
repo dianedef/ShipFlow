@@ -1,10 +1,10 @@
 #!/bin/bash
 # ============================================================================
-# BuildFlowz Shared Library
+# ShipFlow Shared Library
 # ============================================================================
 #
 # Description:
-#   Core library containing all reusable functions for BuildFlowz CLI.
+#   Core library containing all reusable functions for ShipFlow CLI.
 #   Handles environment management, PM2 operations, port allocation,
 #   Flox integration, validation, logging, and caching.
 #
@@ -16,7 +16,7 @@
 #   - jq (optional, preferred for JSON parsing)
 #   - python3 (optional, fallback for JSON parsing)
 #
-# Author: BuildFlowz Team
+# Author: ShipFlow Team
 # Version: 2.0.0
 # Date: 2026-01-24
 # ============================================================================
@@ -32,7 +32,7 @@ source "$SCRIPT_DIR/config.sh"
 # ============================================================================
 
 # Enable strict mode if configured
-if [ "$BUILDFLOWZ_STRICT_MODE" = "true" ]; then
+if [ "$SHIPFLOW_STRICT_MODE" = "true" ]; then
     set -euo pipefail
 fi
 
@@ -45,7 +45,7 @@ error_trap_handler() {
 }
 
 # Install error trap if configured
-if [ "$BUILDFLOWZ_ERROR_TRAPS" = "true" ]; then
+if [ "$SHIPFLOW_ERROR_TRAPS" = "true" ]; then
     trap 'error_trap_handler ${LINENO}' ERR
 fi
 
@@ -73,7 +73,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m'
 
 # Config (use centralized config values)
-PROJECTS_DIR="${BUILDFLOWZ_PROJECTS_DIR}"
+PROJECTS_DIR="${SHIPFLOW_PROJECTS_DIR}"
 
 # ============================================================================
 # GUM DETECTION & UI WRAPPERS
@@ -320,7 +320,7 @@ disk_free_human() {
 }
 
 disk_warn_threshold_bytes() {
-    local gb="${BUILDFLOWZ_DISK_WARN_GB:-5}"
+    local gb="${SHIPFLOW_DISK_WARN_GB:-5}"
     if ! [[ "$gb" =~ ^[0-9]+$ ]]; then
         gb=5
     fi
@@ -447,8 +447,8 @@ UPDATE_CACHE_NPM=0
 UPDATE_CACHE_PIP=0
 UPDATE_CACHE_RUSTUP=0
 UPDATE_CACHE_TTL=300
-MENU_STATUS_CACHE_FILE="${BUILDFLOWZ_SECRETS_DIR}/menu-status.cache"
-MENU_STATUS_LOCK_FILE="${BUILDFLOWZ_SECRETS_DIR}/menu-status.lock"
+MENU_STATUS_CACHE_FILE="${SHIPFLOW_SECRETS_DIR}/menu-status.cache"
+MENU_STATUS_LOCK_FILE="${SHIPFLOW_SECRETS_DIR}/menu-status.lock"
 
 run_with_timeout() {
     if command -v timeout >/dev/null 2>&1; then
@@ -560,7 +560,7 @@ read_menu_status_cache() {
 #   1 - Failed to compute/write cache
 # -----------------------------------------------------------------------------
 refresh_menu_status_cache_sync() {
-    mkdir -p "$BUILDFLOWZ_SECRETS_DIR" 2>/dev/null || true
+    mkdir -p "$SHIPFLOW_SECRETS_DIR" 2>/dev/null || true
 
     local now
     now=$(date +%s)
@@ -598,7 +598,7 @@ refresh_menu_status_cache_sync() {
 #   - Uses PID lock to avoid concurrent expensive refreshes
 # -----------------------------------------------------------------------------
 refresh_menu_status_cache_async_if_stale() {
-    local ttl="${BUILDFLOWZ_MENU_STATUS_CACHE_TTL:-120}"
+    local ttl="${SHIPFLOW_MENU_STATUS_CACHE_TTL:-120}"
     if ! [[ "$ttl" =~ ^[0-9]+$ ]]; then
         ttl=120
     fi
@@ -740,7 +740,7 @@ select_environment() {
 # ============================================================================
 
 # Secrets file path
-BUILDFLOWZ_SECRETS_FILE="${BUILDFLOWZ_SECRETS_DIR}/secrets"
+SHIPFLOW_SECRETS_FILE="${SHIPFLOW_SECRETS_DIR}/secrets"
 
 # -----------------------------------------------------------------------------
 # save_secret - Save a key=value pair to the secrets file
@@ -750,32 +750,32 @@ BUILDFLOWZ_SECRETS_FILE="${BUILDFLOWZ_SECRETS_DIR}/secrets"
 #   $2 - Value (will NOT be logged or echoed)
 #
 # Side Effects:
-#   Creates ~/.buildflowz/ (chmod 700) and secrets file (chmod 600) if needed
+#   Creates ~/.shipflow/ (chmod 700) and secrets file (chmod 600) if needed
 # -----------------------------------------------------------------------------
 save_secret() {
     local key="$1"
     local value="$2"
 
     # Create directory with restricted permissions
-    if [ ! -d "$BUILDFLOWZ_SECRETS_DIR" ]; then
-        mkdir -p "$BUILDFLOWZ_SECRETS_DIR"
-        chmod 700 "$BUILDFLOWZ_SECRETS_DIR"
+    if [ ! -d "$SHIPFLOW_SECRETS_DIR" ]; then
+        mkdir -p "$SHIPFLOW_SECRETS_DIR"
+        chmod 700 "$SHIPFLOW_SECRETS_DIR"
     fi
 
     # Create or update secrets file
-    if [ ! -f "$BUILDFLOWZ_SECRETS_FILE" ]; then
-        touch "$BUILDFLOWZ_SECRETS_FILE"
-        chmod 600 "$BUILDFLOWZ_SECRETS_FILE"
+    if [ ! -f "$SHIPFLOW_SECRETS_FILE" ]; then
+        touch "$SHIPFLOW_SECRETS_FILE"
+        chmod 600 "$SHIPFLOW_SECRETS_FILE"
     else
         # Ensure permissions are correct
-        chmod 600 "$BUILDFLOWZ_SECRETS_FILE"
+        chmod 600 "$SHIPFLOW_SECRETS_FILE"
     fi
 
     # Update existing key or append new one
-    if grep -q "^${key}=" "$BUILDFLOWZ_SECRETS_FILE" 2>/dev/null; then
-        sed -i "s|^${key}=.*|${key}=${value}|" "$BUILDFLOWZ_SECRETS_FILE"
+    if grep -q "^${key}=" "$SHIPFLOW_SECRETS_FILE" 2>/dev/null; then
+        sed -i "s|^${key}=.*|${key}=${value}|" "$SHIPFLOW_SECRETS_FILE"
     else
-        echo "${key}=${value}" >> "$BUILDFLOWZ_SECRETS_FILE"
+        echo "${key}=${value}" >> "$SHIPFLOW_SECRETS_FILE"
     fi
 
     log INFO "Secret saved: $key (value hidden)"
@@ -797,12 +797,12 @@ save_secret() {
 load_secret() {
     local key="$1"
 
-    if [ ! -f "$BUILDFLOWZ_SECRETS_FILE" ]; then
+    if [ ! -f "$SHIPFLOW_SECRETS_FILE" ]; then
         return 1
     fi
 
     local value
-    value=$(grep "^${key}=" "$BUILDFLOWZ_SECRETS_FILE" 2>/dev/null | head -1 | cut -d'=' -f2-)
+    value=$(grep "^${key}=" "$SHIPFLOW_SECRETS_FILE" 2>/dev/null | head -1 | cut -d'=' -f2-)
 
     if [ -z "$value" ]; then
         return 1
@@ -818,18 +818,18 @@ load_secret() {
 
 # Ensure log directory exists
 init_logging() {
-    if [ "$BUILDFLOWZ_LOGGING_ENABLED" = "true" ]; then
-        mkdir -p "$BUILDFLOWZ_LOG_DIR" 2>/dev/null || true
+    if [ "$SHIPFLOW_LOGGING_ENABLED" = "true" ]; then
+        mkdir -p "$SHIPFLOW_LOG_DIR" 2>/dev/null || true
 
         # Rotate old logs
-        if [ -f "$BUILDFLOWZ_LOG_FILE" ]; then
-            local log_size=$(stat -f%z "$BUILDFLOWZ_LOG_FILE" 2>/dev/null || stat -c%s "$BUILDFLOWZ_LOG_FILE" 2>/dev/null || echo 0)
+        if [ -f "$SHIPFLOW_LOG_FILE" ]; then
+            local log_size=$(stat -f%z "$SHIPFLOW_LOG_FILE" 2>/dev/null || stat -c%s "$SHIPFLOW_LOG_FILE" 2>/dev/null || echo 0)
             # Rotate if larger than 10MB
             if [ "$log_size" -gt 10485760 ]; then
-                mv "$BUILDFLOWZ_LOG_FILE" "$BUILDFLOWZ_LOG_FILE.$(date +%s)" 2>/dev/null || true
+                mv "$SHIPFLOW_LOG_FILE" "$SHIPFLOW_LOG_FILE.$(date +%s)" 2>/dev/null || true
 
                 # Clean old logs
-                find "$BUILDFLOWZ_LOG_DIR" -name "*.log.*" -mtime +$BUILDFLOWZ_LOG_RETENTION_DAYS -delete 2>/dev/null || true
+                find "$SHIPFLOW_LOG_DIR" -name "*.log.*" -mtime +$SHIPFLOW_LOG_RETENTION_DAYS -delete 2>/dev/null || true
             fi
         fi
     fi
@@ -843,7 +843,7 @@ log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
     # Check if logging is enabled
-    if [ "$BUILDFLOWZ_LOGGING_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_LOGGING_ENABLED" != "true" ]; then
         return 0
     fi
 
@@ -857,7 +857,7 @@ log() {
     esac
 
     local config_priority=1  # Default to INFO
-    case "$BUILDFLOWZ_LOG_LEVEL" in
+    case "$SHIPFLOW_LOG_LEVEL" in
         DEBUG) config_priority=0 ;;
         INFO) config_priority=1 ;;
         WARNING) config_priority=2 ;;
@@ -873,7 +873,7 @@ log() {
     local log_entry="[$timestamp] [$level] $message"
 
     # Append to log file
-    echo "$log_entry" >> "$BUILDFLOWZ_LOG_FILE" 2>/dev/null || true
+    echo "$log_entry" >> "$SHIPFLOW_LOG_FILE" 2>/dev/null || true
 }
 
 # Initialize logging on load
@@ -904,7 +904,7 @@ parse_json() {
     local jq_expr=$1
 
     # Prefer jq if available and configured
-    if [ "$BUILDFLOWZ_PREFER_JQ" = "true" ] && command -v jq >/dev/null 2>&1; then
+    if [ "$SHIPFLOW_PREFER_JQ" = "true" ] && command -v jq >/dev/null 2>&1; then
         jq -r "$jq_expr" 2>/dev/null || {
             log ERROR "jq parsing failed with expression: $jq_expr"
             return 1
@@ -1136,7 +1136,7 @@ PM2_DATA_CACHE_TIME=0
 # Description:
 #   Retrieves all PM2 app data in a single call and caches the results.
 #   Uses jq for JSON parsing (falls back to python3).
-#   Cache is valid for BUILDFLOWZ_PM2_CACHE_TTL seconds (default: 5).
+#   Cache is valid for SHIPFLOW_PM2_CACHE_TTL seconds (default: 5).
 #
 # Arguments:
 #   None
@@ -1161,7 +1161,7 @@ get_pm2_data_cached() {
     local cache_age=$((current_time - PM2_DATA_CACHE_TIME))
 
     # Return cached data if fresh
-    if [ "$BUILDFLOWZ_PM2_CACHE_ENABLED" = "true" ] && [ $cache_age -lt $BUILDFLOWZ_PM2_CACHE_TTL ] && [ -n "$PM2_DATA_CACHE" ]; then
+    if [ "$SHIPFLOW_PM2_CACHE_ENABLED" = "true" ] && [ $cache_age -lt $SHIPFLOW_PM2_CACHE_TTL ] && [ -n "$PM2_DATA_CACHE" ]; then
         log DEBUG "Using cached PM2 data (age: ${cache_age}s)"
         echo "$PM2_DATA_CACHE"
         return 0
@@ -1176,7 +1176,7 @@ get_pm2_data_cached() {
 
     # Get all PM2 data in one call: name|status|port|cwd
     # Use jq if available (faster), fallback to python3
-    if [ "$BUILDFLOWZ_PREFER_JQ" = "true" ] && command -v jq >/dev/null 2>&1; then
+    if [ "$SHIPFLOW_PREFER_JQ" = "true" ] && command -v jq >/dev/null 2>&1; then
         PM2_DATA_CACHE=$(pm2 jlist 2>/dev/null | jq -r '.[] | "\(.name)|\(.pm2_env.status // "unknown")|\(.pm2_env.env.PORT // "")|\(.pm2_env.pm_cwd // "")"' 2>/dev/null)
     elif command -v python3 >/dev/null 2>&1; then
         PM2_DATA_CACHE=$(pm2 jlist 2>/dev/null | python3 -c "
@@ -1318,7 +1318,7 @@ get_all_pm2_ports() {
 #   Checks both active ports (via ss) and PM2-assigned ports.
 #
 # Arguments:
-#   $1 - Base port to start search (default: BUILDFLOWZ_PORT_RANGE_START)
+#   $1 - Base port to start search (default: SHIPFLOW_PORT_RANGE_START)
 #
 # Returns:
 #   0 - Available port found
@@ -1328,15 +1328,15 @@ get_all_pm2_ports() {
 #   Available port number to stdout
 #
 # Notes:
-#   - Searches up to BUILDFLOWZ_PORT_MAX_ATTEMPTS ports
+#   - Searches up to SHIPFLOW_PORT_MAX_ATTEMPTS ports
 #   - Avoids race conditions by checking both active and reserved ports
 #
 # Example:
 #   port=$(find_available_port 3000)
 # -----------------------------------------------------------------------------
 find_available_port() {
-    local base_port=${1:-$BUILDFLOWZ_PORT_RANGE_START}
-    local max_range=$BUILDFLOWZ_PORT_MAX_ATTEMPTS
+    local base_port=${1:-$SHIPFLOW_PORT_RANGE_START}
+    local max_range=$SHIPFLOW_PORT_MAX_ATTEMPTS
     local port=$base_port
 
     # Get all ports already assigned in PM2 (atomic read)
@@ -1544,24 +1544,24 @@ SESSION_WORDS=(
 #   1 - Error creating directory
 #
 # Side Effects:
-#   - Creates ~/.buildflowz/session/ directory
+#   - Creates ~/.shipflow/session/ directory
 #   - Creates session_id file if not present
 #
 # Example:
 #   init_session
 # -----------------------------------------------------------------------------
 init_session() {
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" != "true" ]; then
         return 0
     fi
 
     # Create session directory
-    if ! mkdir -p "$BUILDFLOWZ_SESSION_DIR" 2>/dev/null; then
-        log ERROR "Failed to create session directory: $BUILDFLOWZ_SESSION_DIR"
+    if ! mkdir -p "$SHIPFLOW_SESSION_DIR" 2>/dev/null; then
+        log ERROR "Failed to create session directory: $SHIPFLOW_SESSION_DIR"
         return 1
     fi
 
-    local session_file="$BUILDFLOWZ_SESSION_DIR/session_id"
+    local session_file="$SHIPFLOW_SESSION_DIR/session_id"
 
     # Generate session ID if not present
     if [ ! -f "$session_file" ]; then
@@ -1600,11 +1600,11 @@ init_session() {
 #   session_id=$(get_session_id)
 # -----------------------------------------------------------------------------
 get_session_id() {
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" != "true" ]; then
         return 1
     fi
 
-    local session_file="$BUILDFLOWZ_SESSION_DIR/session_id"
+    local session_file="$SHIPFLOW_SESSION_DIR/session_id"
 
     # Initialize if needed
     if [ ! -f "$session_file" ]; then
@@ -1758,7 +1758,7 @@ get_session_code() {
 #   display_session_banner
 # -----------------------------------------------------------------------------
 display_session_banner() {
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" != "true" ]; then
         return 1
     fi
 
@@ -1806,12 +1806,12 @@ display_session_banner() {
 #   reset_session
 # -----------------------------------------------------------------------------
 reset_session() {
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" != "true" ]; then
         echo "Session identity is disabled"
         return 1
     fi
 
-    local session_file="$BUILDFLOWZ_SESSION_DIR/session_id"
+    local session_file="$SHIPFLOW_SESSION_DIR/session_id"
 
     # Remove existing session
     if [ -f "$session_file" ]; then
@@ -1852,7 +1852,7 @@ reset_session() {
 #   get_session_info
 # -----------------------------------------------------------------------------
 get_session_info() {
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" != "true" ]; then
         echo "Session identity is disabled"
         return 1
     fi
@@ -1880,7 +1880,7 @@ get_session_info() {
     echo -e "  ${BLUE}User@Host:${NC}    $user_host"
     echo -e "  ${BLUE}Session Code:${NC} ${YELLOW}$session_code${NC}"
     echo -e "  ${BLUE}Created:${NC}      $created_date"
-    echo -e "  ${BLUE}File:${NC}         $BUILDFLOWZ_SESSION_DIR/session_id"
+    echo -e "  ${BLUE}File:${NC}         $SHIPFLOW_SESSION_DIR/session_id"
 }
 
 # -----------------------------------------------------------------------------
@@ -1903,7 +1903,7 @@ get_session_info() {
 #   ssh server "source lib.sh && get_session_info_for_ssh"
 # -----------------------------------------------------------------------------
 get_session_info_for_ssh() {
-    if [ "$BUILDFLOWZ_SESSION_ENABLED" != "true" ]; then
+    if [ "$SHIPFLOW_SESSION_ENABLED" != "true" ]; then
         echo "SESSION_DISABLED"
         return 1
     fi
@@ -1945,7 +1945,7 @@ list_github_repos() {
     fi
 
     local all_repos
-    all_repos=$(gh repo list --limit "$BUILDFLOWZ_GITHUB_REPO_LIMIT" --json name,description --jq '.[] | "\(.name): \(.description)"' 2>/dev/null)
+    all_repos=$(gh repo list --limit "$SHIPFLOW_GITHUB_REPO_LIMIT" --json name,description --jq '.[] | "\(.name): \(.description)"' 2>/dev/null)
 
     if [ -z "$all_repos" ]; then
         return 0
@@ -2424,7 +2424,7 @@ env_start() {
     local final_cmd="${dev_cmd//\$PORT/$port}"
 
     # For Doppler projects, override PORT after doppler injects its env vars
-    # to prevent Doppler's PORT value from taking precedence over BuildFlowz's assignment
+    # to prevent Doppler's PORT value from taking precedence over ShipFlow's assignment
     local inner_cmd="$final_cmd"
     if [ -n "$doppler_prefix" ]; then
         inner_cmd="env PORT=$port $final_cmd"
@@ -2566,6 +2566,9 @@ generate_css_selector() {
 # Initialize web inspector
 init_web_inspector() {
     local script_path="${SCRIPT_DIR}/injectors/web-inspector.js"
+    local script_name="shipflow-inspector.js"
+    local marker="<!-- shipflow-inspector -->"
+    local script_tag='<script src="/shipflow-inspector.js" defer></script>'
 
     if [ ! -f "$script_path" ]; then
         log ERROR "Web inspector script not found at $script_path"
@@ -2575,16 +2578,13 @@ init_web_inspector() {
 
     # Step 1: Copy script to project's public/ directory
     mkdir -p public
-    cp "$script_path" public/buildflowz-inspector.js
-    echo "Copied web inspector to public/buildflowz-inspector.js"
-
-    local script_tag='<script src="/buildflowz-inspector.js" defer></script>'
-    local marker="<!-- buildflowz-inspector -->"
+    cp "$script_path" "public/$script_name"
+    echo "Copied web inspector to public/$script_name"
 
     # Step 2: Add script tag to the appropriate file
     if [ -f "index.html" ]; then
         # Vite/React/Vue projects with root index.html
-        if ! grep -q "buildflowz-inspector" "index.html"; then
+        if ! grep -q "shipflow-inspector" "index.html"; then
             sed -i "s|</body>|  ${marker}\n  ${script_tag}\n</body>|" "index.html"
             echo "Injected script tag into index.html"
         else
@@ -2595,11 +2595,11 @@ init_web_inspector() {
         local injected=false
         for layout in src/layouts/*.astro; do
             [ -f "$layout" ] || continue
-            if grep -q "</body>" "$layout" && ! grep -q "buildflowz-inspector" "$layout"; then
+            if grep -q "</body>" "$layout" && ! grep -q "shipflow-inspector" "$layout"; then
                 sed -i "s|</body>|  ${marker}\n  ${script_tag}\n</body>|" "$layout"
                 echo "Injected script tag into $layout"
                 injected=true
-            elif grep -q "buildflowz-inspector" "$layout"; then
+            elif grep -q "shipflow-inspector" "$layout"; then
                 echo "Script tag already present in $layout"
                 injected=true
             fi
@@ -2638,8 +2638,8 @@ init_web_inspector() {
                             layout_file="$candidate"
                             # For monorepos, also copy to the app's public dir
                             if [ -d "$app_dir/public" ]; then
-                                cp "$script_path" "$app_dir/public/buildflowz-inspector.js"
-                                echo "Copied web inspector to $app_dir/public/buildflowz-inspector.js"
+                                cp "$script_path" "$app_dir/public/$script_name"
+                                echo "Copied web inspector to $app_dir/public/$script_name"
                             fi
                             break 2
                         fi
@@ -2652,7 +2652,7 @@ init_web_inspector() {
             if [ -z "$layout_file" ]; then
                 log WARNING "Next.js project detected but no app/layout found"
                 echo "Warning: Next.js project detected but no app/layout found"
-            elif grep -q "buildflowz-inspector" "$layout_file"; then
+            elif grep -q "shipflow-inspector" "$layout_file"; then
                 echo "Script already present in $layout_file"
             else
                 # Add Script import if not present
@@ -2663,7 +2663,7 @@ init_web_inspector() {
                 fi
 
                 # Add Script component before </body>
-                local nextjs_script='<Script src="/buildflowz-inspector.js" strategy="afterInteractive" id="buildflowz-inspector" />'
+                local nextjs_script='<Script src="/shipflow-inspector.js" strategy="afterInteractive" id="shipflow-inspector" />'
                 if grep -q "</body>" "$layout_file"; then
                     sed -i "s|</body>|        ${nextjs_script}\n      </body>|" "$layout_file"
                     echo "Injected Script component into $layout_file"
@@ -2712,34 +2712,34 @@ toggle_web_inspector() {
 
     cd "$project_dir" || return 1
 
-    if [ -f "public/buildflowz-inspector.js" ]; then
+    if [ -f "public/shipflow-inspector.js" ]; then
         # Disable: remove JS file
-        rm -f "public/buildflowz-inspector.js"
+        rm -f "public/shipflow-inspector.js"
 
         # Remove injected lines from index.html
         if [ -f "index.html" ]; then
-            sed -i '/buildflowz-inspector/d' "index.html"
+            sed -i '/shipflow-inspector/d' "index.html"
         fi
 
         # Remove from Astro layouts
         for layout in src/layouts/*.astro; do
             [ -f "$layout" ] || continue
-            sed -i '/buildflowz-inspector/d' "$layout"
+            sed -i '/shipflow-inspector/d' "$layout"
         done
 
         # Remove from Next.js layouts
         for candidate in "app/layout.tsx" "app/layout.jsx" "src/app/layout.tsx" "src/app/layout.jsx"; do
             [ -f "$candidate" ] || continue
-            sed -i '/buildflowz-inspector/d' "$candidate"
+            sed -i '/shipflow-inspector/d' "$candidate"
         done
 
         # Remove from monorepo app layouts
         for app_dir in apps/* packages/*; do
             [ -d "$app_dir" ] || continue
-            rm -f "$app_dir/public/buildflowz-inspector.js" 2>/dev/null
+            rm -f "$app_dir/public/shipflow-inspector.js" 2>/dev/null
             for candidate in "$app_dir/app/layout.tsx" "$app_dir/app/layout.jsx" "$app_dir/src/app/layout.tsx" "$app_dir/src/app/layout.jsx"; do
                 [ -f "$candidate" ] || continue
-                sed -i '/buildflowz-inspector/d' "$candidate"
+                sed -i '/shipflow-inspector/d' "$candidate"
             done
         done
 

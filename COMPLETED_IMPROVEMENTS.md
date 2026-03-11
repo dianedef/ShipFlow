@@ -1,4 +1,4 @@
-# 🎉 BuildFlowz - Completed Improvements Report
+# 🎉 ShipFlow - Completed Improvements Report
 
 **Date:** 2026-01-24
 **Status:** ✅ All Priority 1 & 2 Tasks Complete!
@@ -88,7 +88,7 @@ Successfully implemented **7 major improvements** across two priority levels, re
 
 **Features:**
 ```bash
-✅ Log file: /var/log/buildflowz/buildflowz.log
+✅ Log file: /var/log/shipflow/shipflow.log
 ✅ Configurable level filtering
 ✅ Auto-rotation and cleanup
 ✅ Helper functions auto-log
@@ -253,16 +253,16 @@ JS parsing:             3 tests ✓
 ### View Configuration
 ```bash
 source config.sh
-buildflowz_print_config
+shipflow_print_config
 ```
 
 Output:
 ```
-BuildFlowz Configuration:
+ShipFlow Configuration:
   Projects Dir: /root
   Port Range: 3000-3100
   Logging: true
-  Log File: /var/log/buildflowz/buildflowz.log
+  Log File: /var/log/shipflow/shipflow.log
   Log Level: INFO
   PM2 Cache: true
 ```
@@ -270,14 +270,14 @@ BuildFlowz Configuration:
 ### Customize Settings
 ```bash
 # Set custom port range
-export BUILDFLOWZ_PORT_RANGE_START=4000
-export BUILDFLOWZ_PORT_RANGE_END=4100
+export SHIPFLOW_PORT_RANGE_START=4000
+export SHIPFLOW_PORT_RANGE_END=4100
 
 # Enable debug logging
-export BUILDFLOWZ_LOG_LEVEL=DEBUG
+export SHIPFLOW_LOG_LEVEL=DEBUG
 
 # Increase cache time
-export BUILDFLOWZ_PM2_CACHE_TTL=10
+export SHIPFLOW_PM2_CACHE_TTL=10
 
 # Run menu
 ./menu.sh
@@ -286,13 +286,13 @@ export BUILDFLOWZ_PM2_CACHE_TTL=10
 ### View Logs
 ```bash
 # Live tail
-tail -f /var/log/buildflowz/buildflowz.log
+tail -f /var/log/shipflow/shipflow.log
 
 # Errors only
-grep ERROR /var/log/buildflowz/buildflowz.log
+grep ERROR /var/log/shipflow/shipflow.log
 
 # Last 20 operations
-tail -20 /var/log/buildflowz/buildflowz.log
+tail -20 /var/log/shipflow/shipflow.log
 ```
 
 ---
@@ -353,4 +353,4 @@ These are nice-to-have improvements for future consideration:
 **Fully tested:** ✅ Yes
 **Well documented:** ✅ Yes
 
-**The BuildFlowz scripts are now secure, fast, maintainable, and production-ready!** 🚀
+**The ShipFlow scripts are now secure, fast, maintainable, and production-ready!** 🚀

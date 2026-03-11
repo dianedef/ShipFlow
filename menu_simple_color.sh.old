@@ -585,7 +585,7 @@ except:
                 
                 # Créer le nouveau Caddyfile
                 {
-                    echo "# Auto-généré par BuildFlowz - $(date)"
+                    echo "# Auto-généré par ShipFlow - $(date)"
                     echo ""
                     
                     echo "$APPS" | while IFS=: read -r name port; do

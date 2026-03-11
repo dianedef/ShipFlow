@@ -1,6 +1,6 @@
 ## 1. Bug Fix — toggle_web_inspector()
 
-- [x] 1.1 Implement `toggle_web_inspector()` in lib.sh after `init_web_inspector()` (~line 1865): check for `public/buildflowz-inspector.js` presence, remove JS file + sed-remove lines containing "buildflowz-inspector" from index.html, `src/layouts/*.astro`, `app/layout.tsx`, `src/app/layout.tsx` if disabling; call `init_web_inspector` if enabling
+- [x] 1.1 Implement `toggle_web_inspector()` in lib.sh after `init_web_inspector()` (~line 1865): check for `public/shipflow-inspector.js` presence, remove JS file + sed-remove lines containing "shipflow-inspector" from index.html, `src/layouts/*.astro`, `app/layout.tsx`, `src/app/layout.tsx` if disabling; call `init_web_inspector` if enabling
 - [x] 1.2 Verify the menu call at menu_simple_color.sh:348 (`toggle_web_inspector "$PROJECT_DIR"`) works with the new function — test enable and disable paths
 
 ## 2. Foundation — Status Indicators
@@ -20,7 +20,7 @@
 ## 4. Foundation — select_environment() + Credential Cache
 
 - [x] 4.1 Move `select_environment()` from menu_simple_color.sh into lib.sh, refactor to use `ui_choose()` and add status icons via `get_pm2_status()` + `get_status_icon()` for each environment entry
-- [x] 4.2 Add `BUILDFLOWZ_SECRETS_DIR` setting to config.sh (default: `$HOME/.buildflowz`)
+- [x] 4.2 Add `SHIPFLOW_SECRETS_DIR` setting to config.sh (default: `$HOME/.shipflow`)
 - [x] 4.3 Implement `save_secret()` in lib.sh — create dir (chmod 700) and file (chmod 600) if needed, sed-update existing key or append new key=value
 - [x] 4.4 Implement `load_secret()` in lib.sh — grep key from secrets file, output value to stdout, return 1 if not found
 
@@ -52,5 +52,5 @@
 - [ ] 8.2 Manual smoke test: run `./menu.sh` without gum — verify all 10 menu options work (dashboard, start, restart, stop, remove, publish, batch ops, advanced, help, exit)
 - [ ] 8.3 Manual smoke test: run `./menu.sh` with gum — verify gum-styled UI renders for selection, input, confirm, and header
 - [ ] 8.4 Test batch operations: verify Stop All, Start All, Restart All with at least 2 environments — check progress output and cache invalidation
-- [ ] 8.5 Test credential cache: run Publish to Web, enter credentials, verify `~/.buildflowz/secrets` exists with chmod 600, re-run and verify cached values are offered
+- [ ] 8.5 Test credential cache: run Publish to Web, enter credentials, verify `~/.shipflow/secrets` exists with chmod 600, re-run and verify cached values are offered
 - [ ] 8.6 Test toggle web inspector: enable on a project (verify JS file + script tag injected), toggle again (verify JS file + script tags removed)

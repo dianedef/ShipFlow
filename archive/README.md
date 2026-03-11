@@ -10,7 +10,7 @@ Ces documents sont conservés pour référence historique mais ne reflètent plu
 
 ## Documentation actuelle
 
-Voir à la racine de BuildFlowz :
+Voir à la racine de ShipFlow :
 - **README.md** - Documentation principale
 - **ECOSYSTEM-AND-PORTS.md** - Gestion ports et ecosystem PM2
 - **local/README.md** - Configuration tunnels SSH

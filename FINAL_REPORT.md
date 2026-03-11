@@ -1,6 +1,6 @@
-# 🎉 BuildFlowz - Complete Improvement Report
+# 🎉 ShipFlow - Complete Improvement Report
 
-**Project:** BuildFlowz CLI - Development Environment Manager
+**Project:** ShipFlow CLI - Development Environment Manager
 **Date:** 2026-01-24
 **Status:** ✅ All Improvements Complete (Priorities 1, 2, 3)
 
@@ -8,7 +8,7 @@
 
 ## 📊 Executive Summary
 
-Successfully completed **11 major improvements** across three priority levels, transforming the BuildFlowz scripts from a functional prototype into a **production-ready, enterprise-grade** development environment management system.
+Successfully completed **11 major improvements** across three priority levels, transforming the ShipFlow scripts from a functional prototype into a **production-ready, enterprise-grade** development environment management system.
 
 ### Key Achievements
 
@@ -139,7 +139,7 @@ Optional: flox, git, jq, python3
 
 **Features:**
 ```bash
-✅ Log file: /var/log/buildflowz/buildflowz.log
+✅ Log file: /var/log/shipflow/shipflow.log
 ✅ Configurable level filtering
 ✅ Auto-rotation and cleanup
 ✅ Helper functions auto-log
@@ -218,7 +218,7 @@ port=$(node -e "const cfg = require('$pm2_config'); console.log(cfg.apps[0].env.
 **Solution Implemented:**
 - Automatic jq detection and preference
 - Graceful fallback to python3
-- Configurable via `BUILDFLOWZ_PREFER_JQ`
+- Configurable via `SHIPFLOW_PREFER_JQ`
 
 **Before:**
 ```bash
@@ -469,16 +469,16 @@ local/dev-tunnel.sh            +30 lines   - Config integration
 
 ```bash
 source config.sh
-buildflowz_print_config
+shipflow_print_config
 ```
 
 ### Customize Settings
 
 ```bash
 # Set custom configuration
-export BUILDFLOWZ_PORT_RANGE_START=4000
-export BUILDFLOWZ_LOG_LEVEL=DEBUG
-export BUILDFLOWZ_PM2_CACHE_TTL=10
+export SHIPFLOW_PORT_RANGE_START=4000
+export SHIPFLOW_LOG_LEVEL=DEBUG
+export SHIPFLOW_PM2_CACHE_TTL=10
 
 # Run menu
 ./menu.sh
@@ -488,13 +488,13 @@ export BUILDFLOWZ_PM2_CACHE_TTL=10
 
 ```bash
 # Live tail
-tail -f /var/log/buildflowz/buildflowz.log
+tail -f /var/log/shipflow/shipflow.log
 
 # Errors only
-grep ERROR /var/log/buildflowz/buildflowz.log
+grep ERROR /var/log/shipflow/shipflow.log
 
 # Last 20 operations
-tail -20 /var/log/buildflowz/buildflowz.log
+tail -20 /var/log/shipflow/shipflow.log
 ```
 
 ### Optional: Install jq
@@ -577,7 +577,7 @@ Error handling coverage:  100%
 
 **All Priority 1, 2, and 3 tasks: ✅ COMPLETE**
 
-The BuildFlowz scripts have been transformed from a functional prototype into a **production-ready, enterprise-grade development environment management system**.
+The ShipFlow scripts have been transformed from a functional prototype into a **production-ready, enterprise-grade development environment management system**.
 
 **Key Achievements:**
 - 🛡️ **Secure**: All inputs validated, zero vulnerabilities

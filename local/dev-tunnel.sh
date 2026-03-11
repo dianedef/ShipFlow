@@ -10,14 +10,14 @@ if [ -f "$SCRIPT_DIR/../config.sh" ]; then
 fi
 
 # Configuration directory
-CONFIG_DIR="$HOME/.buildflowz"
+CONFIG_DIR="$HOME/.shipflow"
 CURRENT_CONNECTION_FILE="$CONFIG_DIR/current_connection"
 
 # Load saved connection or use default
 if [ -f "$CURRENT_CONNECTION_FILE" ]; then
     REMOTE_HOST=$(cat "$CURRENT_CONNECTION_FILE")
 else
-    REMOTE_HOST="${REMOTE_HOST:-$BUILDFLOWZ_SSH_REMOTE_HOST}"
+    REMOTE_HOST="${REMOTE_HOST:-$SHIPFLOW_SSH_REMOTE_HOST}"
     REMOTE_HOST="${REMOTE_HOST:-hetzner}"
 fi
 
@@ -174,8 +174,8 @@ for port_info in "${PORT_ARRAY[@]}"; do
     
     # Créer le tunnel avec autossh (maintient la connexion)
     autossh -M 0 -f -N \
-        -o "ServerAliveInterval=${BUILDFLOWZ_SSH_KEEPALIVE_INTERVAL:-30}" \
-        -o "ServerAliveCountMax=${BUILDFLOWZ_SSH_KEEPALIVE_MAX:-3}" \
+        -o "ServerAliveInterval=${SHIPFLOW_SSH_KEEPALIVE_INTERVAL:-30}" \
+        -o "ServerAliveCountMax=${SHIPFLOW_SSH_KEEPALIVE_MAX:-3}" \
         -o "ExitOnForwardFailure=yes" \
         -L "${port}:localhost:${port}" \
         "$REMOTE_HOST" 2>/dev/null

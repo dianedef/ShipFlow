@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC}        ${YELLOW}BuildFlowz Validation Tests${NC}          ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}        ${YELLOW}ShipFlow Validation Tests${NC}          ${CYAN}║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -40,7 +40,7 @@ echo ""
 
 # Should pass
 run_test "Valid path /root" "pass" validate_project_path "/root"
-run_test "Valid path /root/BuildFlowz" "pass" validate_project_path "/root/BuildFlowz"
+run_test "Valid path /root/ShipFlow" "pass" validate_project_path "/root/ShipFlow"
 run_test "Valid path /opt" "pass" validate_project_path "/opt"
 
 # Should fail

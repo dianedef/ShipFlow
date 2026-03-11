@@ -1,4 +1,4 @@
-# 🚀 BuildFlowz - Priority 2 Implementation Summary
+# 🚀 ShipFlow - Priority 2 Implementation Summary
 
 **Date:** 2026-01-24
 **Status:** ✅ Complete
@@ -24,28 +24,28 @@ All four Priority 2 tasks have been successfully implemented and tested!
 **New Configuration File:**
 ```bash
 # Port Configuration
-BUILDFLOWZ_PORT_RANGE_START=3000
-BUILDFLOWZ_PORT_RANGE_END=3100
-BUILDFLOWZ_PORT_MAX_ATTEMPTS=100
+SHIPFLOW_PORT_RANGE_START=3000
+SHIPFLOW_PORT_RANGE_END=3100
+SHIPFLOW_PORT_MAX_ATTEMPTS=100
 
 # SSH Tunnel Configuration
-BUILDFLOWZ_SSH_KEEPALIVE_INTERVAL=30
-BUILDFLOWZ_SSH_KEEPALIVE_MAX=3
-BUILDFLOWZ_SSH_REMOTE_USER=root
-BUILDFLOWZ_SSH_REMOTE_HOST=hetzner
+SHIPFLOW_SSH_KEEPALIVE_INTERVAL=30
+SHIPFLOW_SSH_KEEPALIVE_MAX=3
+SHIPFLOW_SSH_REMOTE_USER=root
+SHIPFLOW_SSH_REMOTE_HOST=hetzner
 
 # Logging Configuration
-BUILDFLOWZ_LOGGING_ENABLED=true
-BUILDFLOWZ_LOG_DIR=/var/log/buildflowz
-BUILDFLOWZ_LOG_LEVEL=INFO
-BUILDFLOWZ_LOG_RETENTION_DAYS=30
+SHIPFLOW_LOGGING_ENABLED=true
+SHIPFLOW_LOG_DIR=/var/log/shipflow
+SHIPFLOW_LOG_LEVEL=INFO
+SHIPFLOW_LOG_RETENTION_DAYS=30
 
 # GitHub Configuration
-BUILDFLOWZ_GITHUB_REPO_LIMIT=20
+SHIPFLOW_GITHUB_REPO_LIMIT=20
 
 # Performance
-BUILDFLOWZ_PM2_CACHE_ENABLED=true
-BUILDFLOWZ_PM2_CACHE_TTL=5
+SHIPFLOW_PM2_CACHE_ENABLED=true
+SHIPFLOW_PM2_CACHE_TTL=5
 
 # ... and more!
 ```
@@ -328,16 +328,16 @@ Created comprehensive test suite: `test_priority2.sh`
 ```bash
 # Source config and print all settings
 source config.sh
-buildflowz_print_config
+shipflow_print_config
 ```
 
 Output:
 ```
-BuildFlowz Configuration:
+ShipFlow Configuration:
   Projects Dir: /root
   Port Range: 3000-3100
   Logging: true
-  Log File: /var/log/buildflowz/buildflowz.log
+  Log File: /var/log/shipflow/shipflow.log
   Log Level: INFO
   PM2 Cache: true
 ```
@@ -346,10 +346,10 @@ BuildFlowz Configuration:
 
 ```bash
 # Via environment variables (before running scripts)
-export BUILDFLOWZ_PORT_RANGE_START=4000
-export BUILDFLOWZ_PORT_RANGE_END=4100
-export BUILDFLOWZ_LOG_LEVEL=DEBUG
-export BUILDFLOWZ_PM2_CACHE_TTL=10
+export SHIPFLOW_PORT_RANGE_START=4000
+export SHIPFLOW_PORT_RANGE_END=4100
+export SHIPFLOW_LOG_LEVEL=DEBUG
+export SHIPFLOW_PM2_CACHE_TTL=10
 
 ./menu.sh
 ```
@@ -358,19 +358,19 @@ export BUILDFLOWZ_PM2_CACHE_TTL=10
 
 ```bash
 # Tail live logs
-tail -f /var/log/buildflowz/buildflowz.log
+tail -f /var/log/shipflow/shipflow.log
 
 # View errors only
-grep ERROR /var/log/buildflowz/buildflowz.log
+grep ERROR /var/log/shipflow/shipflow.log
 
 # Last 20 operations
-tail -20 /var/log/buildflowz/buildflowz.log
+tail -20 /var/log/shipflow/shipflow.log
 ```
 
 ### Disable Caching (for debugging)
 
 ```bash
-export BUILDFLOWZ_PM2_CACHE_ENABLED=false
+export SHIPFLOW_PM2_CACHE_ENABLED=false
 ./menu.sh
 ```
 
@@ -416,12 +416,12 @@ find_available_port() {
 **After:**
 ```bash
 # In config.sh
-export BUILDFLOWZ_PORT_MAX_ATTEMPTS=100
+export SHIPFLOW_PORT_MAX_ATTEMPTS=100
 
 # In lib.sh
 find_available_port() {
-    local base_port=${1:-$BUILDFLOWZ_PORT_RANGE_START}
-    local max_range=$BUILDFLOWZ_PORT_MAX_ATTEMPTS  # Configurable!
+    local base_port=${1:-$SHIPFLOW_PORT_RANGE_START}
+    local max_range=$SHIPFLOW_PORT_MAX_ATTEMPTS  # Configurable!
     # ...
 }
 ```
@@ -439,7 +439,7 @@ You: "🤷 No logs, can't help"
 User: "My environment didn't start"
 You: "Check the logs:"
 
-$ grep myapp /var/log/buildflowz/buildflowz.log
+$ grep myapp /var/log/shipflow/shipflow.log
 [2026-01-24 17:02:19] [INFO] Starting environment: myapp on port 3001
 [2026-01-24 17:02:19] [ERROR] Flox is not installed
 [2026-01-24 17:02:19] [INFO] Install with: curl -fsSL https://flox.dev/install

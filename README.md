@@ -1,11 +1,11 @@
-# BuildFlowz CLI
+# ShipFlow CLI
 
 Menu interactif pour gérer vos environnements de développement avec Flox + PM2 + Caddy.
 
 ## 📁 Structure
 
 ```
-BuildFlowz/
+ShipFlow/
 ├── lib.sh                  # Bibliothèque partagée (fonctions réutilisables)
 ├── menu_simple_color.sh    # Menu interactif principal
 ├── local/                  # Configuration machine locale (tunnels SSH)
@@ -43,13 +43,13 @@ Interface utilisateur en mode menu interactif :
 
 ### Installation initiale
 ```bash
-cd /root/BuildFlowz
+cd /root/ShipFlow
 sudo ./install.sh  # Installe Node.js, PM2, Flox, Caddy, etc.
 ```
 
 ### Sur le serveur
 ```bash
-cd /root/BuildFlowz
+cd /root/ShipFlow
 ./menu_simple_color.sh
 ```
 
@@ -61,7 +61,7 @@ cd /root/BuildFlowz
 ### Sur votre machine locale (tunnels SSH)
 ```bash
 # Installation (une fois)
-cd ~/BuildFlowz/local
+cd ~/ShipFlow/local
 ./install.sh
 
 # Utilisation
@@ -75,7 +75,7 @@ urls  # ou tunnel
 
 ## 🔌 Gestion automatique des ports
 
-BuildFlowz gère automatiquement l'allocation des ports pour éviter les collisions :
+ShipFlow gère automatiquement l'allocation des ports pour éviter les collisions :
 - Détecte les ports actifs et ceux assignés dans PM2
 - Assigne automatiquement le prochain port disponible (3000-3100)
 - Crée un fichier `ecosystem.config.cjs` persistant avec variable `PORT`

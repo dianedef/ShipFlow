@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**BuildFlowz** is a CLI development environment manager for Hetzner servers that automates deployment using **Flox** (isolated environments), **PM2** (process management), and **Caddy** (HTTPS reverse proxy). It provides both local SSH tunnel access for development and public HTTPS URLs via DuckDNS.
+**ShipFlow** is a CLI development environment manager for Hetzner servers that automates deployment using **Flox** (isolated environments), **PM2** (process management), and **Caddy** (HTTPS reverse proxy). It provides both local SSH tunnel access for development and public HTTPS URLs via DuckDNS.
 
 **Production Status:** ✅ Production-ready, enterprise-grade (v2.0.0)
 - 99% test coverage (107/108 tests)
@@ -106,7 +106,7 @@ error_trap_handler() {
 cleanup_temp_files() { ... }
 trap cleanup_temp_files EXIT
 ```
-- Optional strict mode: `BUILDFLOWZ_STRICT_MODE=true` (set -euo pipefail)
+- Optional strict mode: `SHIPFLOW_STRICT_MODE=true` (set -euo pipefail)
 - Line number logging for debugging
 - Automatic temporary file cleanup
 
@@ -119,7 +119,7 @@ else
     data=$(pm2 jlist | python3 -c "...")     # Fallback
 fi
 ```
-- Configurable: `BUILDFLOWZ_PREFER_JQ=true` (default)
+- Configurable: `SHIPFLOW_PREFER_JQ=true` (default)
 - Graceful degradation if jq not installed
 
 ---
@@ -180,14 +180,14 @@ invalidate_pm2_cache           # Call after PM2 state changes
 ```bash
 # View current config
 source config.sh
-buildflowz_print_config
+shipflow_print_config
 
 # Customize via environment variables
-export BUILDFLOWZ_PORT_RANGE_START=4000
-export BUILDFLOWZ_PORT_RANGE_END=4100
-export BUILDFLOWZ_LOG_LEVEL=DEBUG
-export BUILDFLOWZ_PM2_CACHE_TTL=10
-export BUILDFLOWZ_PREFER_JQ=true
+export SHIPFLOW_PORT_RANGE_START=4000
+export SHIPFLOW_PORT_RANGE_END=4100
+export SHIPFLOW_LOG_LEVEL=DEBUG
+export SHIPFLOW_PM2_CACHE_TTL=10
+export SHIPFLOW_PREFER_JQ=true
 
 # Run menu with custom config
 ./menu.sh
@@ -197,21 +197,21 @@ export BUILDFLOWZ_PREFER_JQ=true
 
 ```bash
 # Live tail
-tail -f /var/log/buildflowz/buildflowz.log
+tail -f /var/log/shipflow/shipflow.log
 
 # Filter by level
-grep ERROR /var/log/buildflowz/buildflowz.log
-grep WARNING /var/log/buildflowz/buildflowz.log
+grep ERROR /var/log/shipflow/shipflow.log
+grep WARNING /var/log/shipflow/shipflow.log
 
 # Recent operations
-tail -20 /var/log/buildflowz/buildflowz.log
+tail -20 /var/log/shipflow/shipflow.log
 ```
 
 ---
 
 ## Framework Auto-Configuration
 
-When starting an environment, BuildFlowz automatically configures frameworks to use the `PORT` environment variable:
+When starting an environment, ShipFlow automatically configures frameworks to use the `PORT` environment variable:
 
 **Astro** - Modifies `astro.config.mjs`:
 ```javascript
@@ -277,7 +277,7 @@ Locations: Already integrated into env_start/stop/remove
 
 ### Web Inspector Injection
 
-`init_web_inspector()` automatically injects `/buildflowz-inspector.js` into projects:
+`init_web_inspector()` automatically injects `/shipflow-inspector.js` into projects:
 - Copies from `injectors/web-inspector.js` to `public/`
 - Injects `<script>` tag before `</body>` in index.html or Astro layouts
 - Provides visual element inspector with screenshot capabilities
@@ -385,7 +385,7 @@ Check: `check_prerequisites()` validates on startup
 **config.sh** - All settings (130+ variables)
 **ecosystem.config.cjs** - Per-project PM2 config (auto-generated)
 **Caddyfile** - Generated at /etc/caddy/Caddyfile (web publishing)
-**Log file** - /var/log/buildflowz/buildflowz.log (10MB rotation, 30-day retention)
+**Log file** - /var/log/shipflow/shipflow.log (10MB rotation, 30-day retention)
 
 ---
 
@@ -408,7 +408,7 @@ https://subdomain.duckdns.org/app2 → localhost:3001
 ## File Structure
 
 ```
-BuildFlowz/
+ShipFlow/
 ├── lib.sh                   # Core library (43K)
 ├── config.sh                # Centralized config (6.3K)
 ├── menu.sh                  # Gum-based menu

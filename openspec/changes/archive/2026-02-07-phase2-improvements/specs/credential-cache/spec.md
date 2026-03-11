@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: Secrets file storage
-The system SHALL store credentials in a file at `$BUILDFLOWZ_SECRETS_DIR/secrets` (defaulting to `~/.buildflowz/secrets`). The secrets directory SHALL be created with permissions 700 and the secrets file SHALL be created with permissions 600.
+The system SHALL store credentials in a file at `$SHIPFLOW_SECRETS_DIR/secrets` (defaulting to `~/.shipflow/secrets`). The secrets directory SHALL be created with permissions 700 and the secrets file SHALL be created with permissions 600.
 
 #### Scenario: First credential save on fresh system
 - **WHEN** `save_secret()` is called and neither the directory nor file exist
-- **THEN** the system creates `~/.buildflowz/` with chmod 700, creates `secrets` with chmod 600, and writes the key=value pair
+- **THEN** the system creates `~/.shipflow/` with chmod 700, creates `secrets` with chmod 600, and writes the key=value pair
 
 #### Scenario: Secrets file permissions are verified
 - **WHEN** the secrets file already exists
@@ -49,8 +49,8 @@ The "Publish to Web" menu flow SHALL attempt to load cached DuckDNS subdomain an
 - **THEN** the system prompts for subdomain and token as before, then saves them to the secrets file
 
 ### Requirement: Config setting for secrets directory
-The system SHALL add `BUILDFLOWZ_SECRETS_DIR` to `config.sh`, defaulting to `$HOME/.buildflowz`.
+The system SHALL add `SHIPFLOW_SECRETS_DIR` to `config.sh`, defaulting to `$HOME/.shipflow`.
 
 #### Scenario: Custom secrets directory
-- **WHEN** `BUILDFLOWZ_SECRETS_DIR` is set to a custom path before sourcing config.sh
-- **THEN** the secrets file is read from and written to `$BUILDFLOWZ_SECRETS_DIR/secrets`
+- **WHEN** `SHIPFLOW_SECRETS_DIR` is set to a custom path before sourcing config.sh
+- **THEN** the secrets file is read from and written to `$SHIPFLOW_SECRETS_DIR/secrets`

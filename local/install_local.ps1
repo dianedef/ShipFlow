@@ -12,7 +12,7 @@ $NC = "`e[0m"
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SSH_CONFIG = "$env:USERPROFILE\.ssh\config"
 
-Write-Host "${BLUE}🚀 Installation BuildFlowz - Configuration Windows${NC}"
+Write-Host "${BLUE}🚀 Installation ShipFlow - Configuration Windows${NC}"
 Write-Host ""
 
 # 1. Vérifier OpenSSH Client
@@ -57,7 +57,7 @@ if ((Test-Path $SSH_CONFIG) -and (Select-String -Path $SSH_CONFIG -Pattern "Host
     # Ajouter la configuration SSH
     $sshConfigContent = @"
 
-# BuildFlowz - Serveur Hetzner
+# ShipFlow - Serveur Hetzner
 Host hetzner
     HostName 5.75.134.202
     User root
@@ -111,11 +111,11 @@ if (-not (Test-Path $profilePath)) {
 
 $aliasBlock = @"
 
-# BuildFlowz - Alias pour tunnels SSH
+# ShipFlow - Alias pour tunnels SSH
 function tunnel { param([int]`$Port) & "$tunnelScriptPath" -Port `$Port }
 "@
 
-if (-not (Select-String -Path $profilePath -Pattern "BuildFlowz - Alias" -Quiet)) {
+if (-not (Select-String -Path $profilePath -Pattern "ShipFlow - Alias" -Quiet)) {
     Add-Content -Path $profilePath -Value $aliasBlock
     Write-Host "${GREEN}   ✓ Alias ajouté au profil PowerShell${NC}"
 } else {

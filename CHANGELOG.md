@@ -1,4 +1,4 @@
-# BuildFlowz Changelog
+# ShipFlow Changelog
 
 ## [2026-03-07] - Disk Cleanup & Dev Command Fixes
 
@@ -136,7 +136,7 @@ Created `config.sh` with centralized settings:
 #### 📊 Task #7: Structured Logging (COMPLETED)
 Implemented comprehensive logging system:
 - **Log levels:** DEBUG, INFO, WARNING, ERROR
-- **Log file:** `/var/log/buildflowz/buildflowz.log` (configurable)
+- **Log file:** `/var/log/shipflow/shipflow.log` (configurable)
 - **Log rotation:** Automatic rotation at 10MB, 30-day retention
 - **Format:** `[TIMESTAMP] [LEVEL] message`
 
@@ -244,7 +244,7 @@ Optimized JSON parsing with jq preference:
 - **New feature:** Automatic jq detection and preference
 - **Fallback:** Python3 if jq not available
 - **Performance:** 2-5x faster JSON parsing with jq
-- **Configuration:** BUILDFLOWZ_PREFER_JQ (default: true)
+- **Configuration:** SHIPFLOW_PREFER_JQ (default: true)
 
 **Functions Updated:**
 - `get_pm2_data_cached()` - Uses jq if available
@@ -260,7 +260,7 @@ Optimized JSON parsing with jq preference:
 Implemented structured error handling system:
 - **Error traps:** Automatic error catching with line numbers
 - **Temp file cleanup:** Automatic cleanup on exit via traps
-- **Configuration:** BUILDFLOWZ_ERROR_TRAPS, BUILDFLOWZ_STRICT_MODE
+- **Configuration:** SHIPFLOW_ERROR_TRAPS, SHIPFLOW_STRICT_MODE
 
 **New Features:**
 - `error_trap_handler()` - Logs errors with line numbers

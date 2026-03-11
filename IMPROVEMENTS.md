@@ -1,4 +1,4 @@
-# BuildFlowz Script Improvements
+# ShipFlow Script Improvements
 
 **Analysis Date:** 2026-01-24
 
@@ -217,7 +217,7 @@ All output goes to stdout/stderr with echo statements.
 
 **Fix:**
 ```bash
-LOG_FILE="/var/log/buildflowz.log"
+LOG_FILE="/var/log/shipflow.log"
 
 log() {
     local level=$1

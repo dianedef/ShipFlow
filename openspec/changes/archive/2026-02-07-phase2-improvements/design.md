@@ -1,10 +1,10 @@
 ## Context
 
-BuildFlowz currently has two separate menu files serving the same purpose:
+ShipFlow currently has two separate menu files serving the same purpose:
 - `menu_simple_color.sh` (743 lines) — text-based with ANSI colors, used when gum is unavailable. This is the primary menu (Phase 1 features: dashboard, restart, smart start, logs, help). Uses `select_environment()` with plain numbered lists.
 - `menu.sh` (568 lines) — gum-based with French labels, older design (pre-Phase 1). Uses `gum choose`/`gum filter` for selection. Has its own DuckDNS publish flow and web inspector toggle.
 
-Both source `lib.sh` (2,304 lines) which contains all core logic. `config.sh` (185 lines) centralizes settings, already using `$HOME/.buildflowz/` for session and log storage.
+Both source `lib.sh` (2,304 lines) which contains all core logic. `config.sh` (185 lines) centralizes settings, already using `$HOME/.shipflow/` for session and log storage.
 
 Key observations from code review:
 - `menu_simple_color.sh` is the more complete, English-language menu with Phase 1 features
@@ -90,13 +90,13 @@ Update `select_environment()` (moving it from menu into lib.sh) to call `get_pm2
 - *`pm2 stop all` shortcut* — Skips our cache invalidation and logging; doesn't match our env_stop behavior
 - *Put under "More Options" submenu* — Batch ops are common enough to deserve top-level placement
 
-### 4. Credential cache: `~/.buildflowz/secrets`
+### 4. Credential cache: `~/.shipflow/secrets`
 
-**Decision:** Store DuckDNS subdomain and token in `~/.buildflowz/secrets` as a simple key=value file with chmod 600. Provide `load_secrets()` and `save_secret()` helpers in lib.sh.
+**Decision:** Store DuckDNS subdomain and token in `~/.shipflow/secrets` as a simple key=value file with chmod 600. Provide `load_secrets()` and `save_secret()` helpers in lib.sh.
 
 **Approach:**
 ```bash
-BUILDFLOWZ_SECRETS_FILE="${BUILDFLOWZ_SECRETS_DIR:-$HOME/.buildflowz}/secrets"
+SHIPFLOW_SECRETS_FILE="${SHIPFLOW_SECRETS_DIR:-$HOME/.shipflow}/secrets"
 
 save_secret() {  # key, value → append/update in secrets file
     # Create dir with 700, file with 600
@@ -116,7 +116,7 @@ The "Publish to Web" flow changes to:
 
 **Config addition:**
 ```bash
-export BUILDFLOWZ_SECRETS_DIR="${BUILDFLOWZ_SECRETS_DIR:-$HOME/.buildflowz}"
+export SHIPFLOW_SECRETS_DIR="${SHIPFLOW_SECRETS_DIR:-$HOME/.shipflow}"
 ```
 
 ### 5. Fix toggle_web_inspector(): implement in lib.sh
@@ -130,11 +130,11 @@ toggle_web_inspector() {
     cd "$project_dir" || return 1
 
     # Check if inspector is present
-    if [ -f "public/buildflowz-inspector.js" ]; then
+    if [ -f "public/shipflow-inspector.js" ]; then
         # Remove: delete the JS file and strip script tags from HTML/Astro/Next layouts
-        rm -f "public/buildflowz-inspector.js"
+        rm -f "public/shipflow-inspector.js"
         # Remove injected lines (marker + script tag) from index.html, layouts, etc.
-        # Use sed to remove lines containing "buildflowz-inspector"
+        # Use sed to remove lines containing "shipflow-inspector"
         echo "Web inspector disabled"
     else
         # Enable: call existing init_web_inspector

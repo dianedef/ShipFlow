@@ -6,7 +6,7 @@ source "$SCRIPT_DIR/config.sh"
 source "$SCRIPT_DIR/lib.sh"
 
 echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC}      ${YELLOW}BuildFlowz Priority 2 Tests${NC}           ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}      ${YELLOW}ShipFlow Priority 2 Tests${NC}           ${CYAN}║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -38,12 +38,12 @@ run_test() {
 echo -e "${BLUE}Testing Configuration (#8)${NC}"
 echo ""
 
-run_test "Config loaded: BUILDFLOWZ_PROJECTS_DIR" test -n "$BUILDFLOWZ_PROJECTS_DIR"
-run_test "Config loaded: BUILDFLOWZ_PORT_RANGE_START" test -n "$BUILDFLOWZ_PORT_RANGE_START"
-run_test "Config loaded: BUILDFLOWZ_LOGGING_ENABLED" test -n "$BUILDFLOWZ_LOGGING_ENABLED"
-run_test "Config value: PORT_RANGE_START=3000" test "$BUILDFLOWZ_PORT_RANGE_START" -eq 3000
-run_test "Config value: PORT_RANGE_END=3100" test "$BUILDFLOWZ_PORT_RANGE_END" -eq 3100
-run_test "Config validation function exists" type buildflowz_validate_config
+run_test "Config loaded: SHIPFLOW_PROJECTS_DIR" test -n "$SHIPFLOW_PROJECTS_DIR"
+run_test "Config loaded: SHIPFLOW_PORT_RANGE_START" test -n "$SHIPFLOW_PORT_RANGE_START"
+run_test "Config loaded: SHIPFLOW_LOGGING_ENABLED" test -n "$SHIPFLOW_LOGGING_ENABLED"
+run_test "Config value: PORT_RANGE_START=3000" test "$SHIPFLOW_PORT_RANGE_START" -eq 3000
+run_test "Config value: PORT_RANGE_END=3100" test "$SHIPFLOW_PORT_RANGE_END" -eq 3100
+run_test "Config validation function exists" type shipflow_validate_config
 
 echo ""
 
@@ -55,9 +55,9 @@ echo -e "${BLUE}Testing Structured Logging (#7)${NC}"
 echo ""
 
 # Clear test log
-TEST_LOG_FILE="/tmp/buildflowz_test.log"
-export BUILDFLOWZ_LOG_FILE="$TEST_LOG_FILE"
-export BUILDFLOWZ_LOGGING_ENABLED="true"
+TEST_LOG_FILE="/tmp/shipflow_test.log"
+export SHIPFLOW_LOG_FILE="$TEST_LOG_FILE"
+export SHIPFLOW_LOGGING_ENABLED="true"
 rm -f "$TEST_LOG_FILE"
 
 # Reinitialize logging with test path
