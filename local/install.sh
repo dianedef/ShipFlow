@@ -37,7 +37,7 @@ elif [ -f "$HOME/.zshrc" ] && [ -n "$SHELL" ] && [[ "$SHELL" == *"zsh"* ]]; then
     SHELL_RC="$HOME/.zshrc"
 fi
 
-echo -e "${BLUE}🚀 Installation BuildFlowz - Configuration Locale${NC}"
+echo -e "${BLUE}🚀 Installation ShipFlow - Configuration Locale${NC}"
 echo ""
 
 # Afficher le système détecté
@@ -93,7 +93,7 @@ else
     # Ajouter la configuration SSH
     cat >> "$SSH_CONFIG" << 'EOF'
 
-# BuildFlowz - Serveur Hetzner
+# ShipFlow - Serveur Hetzner
 Host hetzner
     HostName 5.75.134.202
     User root
@@ -115,12 +115,12 @@ echo ""
 echo -e "${BLUE}3. Ajout des alias shell...${NC}"
 
 ALIAS_BLOCK="
-# BuildFlowz - Alias pour tunnels SSH
+# ShipFlow - Alias pour tunnels SSH
 alias urls='$SCRIPT_DIR/local.sh'
 alias tunnel='$SCRIPT_DIR/local.sh'
 "
 
-if grep -q "# BuildFlowz - Alias pour tunnels SSH" "$SHELL_RC" 2>/dev/null; then
+if grep -q "# ShipFlow - Alias pour tunnels SSH" "$SHELL_RC" 2>/dev/null; then
     echo -e "${YELLOW}   ⚠ Alias déjà présents dans $SHELL_RC${NC}"
 else
     echo "$ALIAS_BLOCK" >> "$SHELL_RC"

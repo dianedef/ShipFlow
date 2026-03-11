@@ -1,8 +1,8 @@
-# BuildFlowz - Installation pour Windows
+# ShipFlow - Installation pour Windows
 
 ## 🎯 Options d'installation
 
-Windows offre **3 options** pour utiliser BuildFlowz localement:
+Windows offre **3 options** pour utiliser ShipFlow localement:
 
 ---
 
@@ -31,8 +31,8 @@ Windows offre **3 options** pour utiliser BuildFlowz localement:
 3. **Cloner le repo et installer:**
    ```bash
    cd /mnt/c/Users/VotreNom/Documents  # Ou votre dossier préféré
-   git clone https://github.com/votre-org/BuildFlowz.git
-   cd BuildFlowz/local
+   git clone https://github.com/votre-org/ShipFlow.git
+   cd ShipFlow/local
    ./install.sh
    ```
 

@@ -29,8 +29,8 @@ Voir [README_WINDOWS.md](./README_WINDOWS.md) pour les 3 options disponibles:
 **Linux / macOS / WSL:**
 ```bash
 # Cloner le repo
-git clone <votre-repo> ~/BuildFlowz
-cd ~/BuildFlowz/local
+git clone <votre-repo> ~/ShipFlow
+cd ~/ShipFlow/local
 
 # Lancer l'installation
 ./install.sh
@@ -42,8 +42,8 @@ source ~/.bashrc  # ou source ~/.zshrc
 **Windows (PowerShell):**
 ```powershell
 # Cloner le repo
-git clone <votre-repo> $env:USERPROFILE\BuildFlowz
-cd $env:USERPROFILE\BuildFlowz\local
+git clone <votre-repo> $env:USERPROFILE\ShipFlow
+cd $env:USERPROFILE\ShipFlow\local
 
 # Lancer l'installation
 .\install_local.ps1
@@ -66,7 +66,7 @@ Si vous préférez configurer manuellement :
 1. **Configuration SSH** - Copier `ssh-config` dans `~/.ssh/config`
 2. **Alias** - Ajouter dans `~/.bashrc` ou `~/.zshrc` :
    ```bash
-   alias urls='~/BuildFlowz/local/dev-tunnel.sh'
+   alias urls='~/ShipFlow/local/local.sh'
    ```
 
 ## 🚀 Utilisation

@@ -158,6 +158,25 @@ load_current_connection
 CACHED_SESSION_INFO=""
 CACHED_SESSION_TIME=0
 
+# Function to retrieve server session info from ShipFlow install paths
+fetch_server_session_info() {
+    ssh -o ConnectTimeout=5 "$REMOTE_HOST" "bash -lc '
+        for lib_path in \
+            \"\$HOME/ShipFlow/lib.sh\" \
+            \"/home/claude/ShipFlow/lib.sh\" \
+            \"/root/ShipFlow/lib.sh\"
+        do
+            if [ -f \"\$lib_path\" ]; then
+                source \"\$lib_path\" 2>/dev/null
+                get_session_info_for_ssh 2>/dev/null
+                exit 0
+            fi
+        done
+
+        echo SESSION_NOT_FOUND
+    '" 2>/dev/null
+}
+
 # Function to retrieve server session info (with caching)
 get_server_session_info() {
     local current_time=$(date +%s)
@@ -170,17 +189,7 @@ get_server_session_info() {
     fi
 
     # Retrieve session info from server
-    CACHED_SESSION_INFO=$(ssh -o ConnectTimeout=5 "$REMOTE_HOST" "
-        if [ -f ~/BuildFlowz/lib.sh ]; then
-            source ~/BuildFlowz/lib.sh 2>/dev/null
-            get_session_info_for_ssh 2>/dev/null
-        elif [ -f ~/.buildflowz/lib.sh ]; then
-            source ~/.buildflowz/lib.sh 2>/dev/null
-            get_session_info_for_ssh 2>/dev/null
-        else
-            echo 'SESSION_NOT_FOUND'
-        fi
-    " 2>/dev/null)
+    CACHED_SESSION_INFO=$(fetch_server_session_info)
 
     CACHED_SESSION_TIME=$current_time
     echo "$CACHED_SESSION_INFO"
@@ -208,7 +217,7 @@ display_server_session_banner() {
         echo -e "        ${GREEN}$session_user@$session_host${NC}    ${YELLOW}$session_code${NC}"
         echo -e "${CYAN}──────────────────────────────────────────────────${NC}"
     elif echo "$session_info" | grep -q "SESSION_NOT_FOUND"; then
-        echo -e "${YELLOW}⚠ Session identity unavailable (BuildFlowz not found on server)${NC}"
+        echo -e "${YELLOW}⚠ Session identity unavailable (ShipFlow not found on server)${NC}"
     elif [ -z "$session_info" ]; then
         echo -e "${YELLOW}⚠ Could not connect to server${NC}"
     fi
@@ -217,7 +226,7 @@ display_server_session_banner() {
 # Fonction d'affichage avec couleurs
 print_header() {
     echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
-    echo -e "                ${YELLOW}BuildFlowz - Local${NC}"
+    echo -e "                 ${YELLOW}ShipFlow - Local${NC}"
     echo -e "                ${BLUE}SSH Tunnel Manager${NC}"
     echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
 
