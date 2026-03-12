@@ -37,6 +37,10 @@ export SHIPFLOW_SSH_KEEPALIVE_MAX="${SHIPFLOW_SSH_KEEPALIVE_MAX:-3}"
 export SHIPFLOW_SSH_REMOTE_USER="${SHIPFLOW_SSH_REMOTE_USER:-root}"
 export SHIPFLOW_SSH_REMOTE_HOST="${SHIPFLOW_SSH_REMOTE_HOST:-hetzner}"
 
+# Extra static tunnel ports (comma-separated, port:label format)
+# These are always tunneled in addition to PM2-detected ports
+export SHIPFLOW_EXTRA_TUNNELS="${SHIPFLOW_EXTRA_TUNNELS:-3773:t3-code}"
+
 # ============================================================================
 # LOGGING CONFIGURATION
 # ============================================================================
