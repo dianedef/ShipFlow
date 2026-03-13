@@ -391,7 +391,7 @@ show_advanced_menu() {
         echo -e "  ${CYAN}1)${NC} 📝 View Logs - Display application logs"
         echo -e "  ${CYAN}2)${NC} 📁 Navigate Projects - Browse /root directory"
         echo -e "  ${CYAN}3)${NC} 📂 Open Code Directory - cd into project"
-        echo -e "  ${CYAN}4)${NC} 🔍 Toggle Web Inspector - Enable/disable browser inspector"
+        echo -e "  ${CYAN}4)${NC} 🛠️  Outils Dev - Inspecteur & Console Eruda (par projet)"
         echo -e "  ${CYAN}5)${NC} 🔐 Session Identity - View or reset session"
         echo -e "  ${CYAN}6)${NC} 🌐 Publish to Web - Configure HTTPS (Caddy + DuckDNS)"
         echo -e "  ${CYAN}7)${NC} 📖 Help - How ShipFlow works"
@@ -448,19 +448,90 @@ show_advanced_menu() {
                 fi
                 ;;
             4)
-                # Toggle Web Inspector
-                echo -e "${GREEN}🔍 Toggle Web Inspector${NC}"
-                ENV_NAME=$(select_environment "Select environment for web inspector")
+                # Dev Tools submenu (per-project inspector & eruda)
+                echo -e "${GREEN}🛠️  Outils Dev${NC}"
+                ENV_NAME=$(select_environment "Choisis un projet")
 
                 if [ -n "$ENV_NAME" ]; then
                     PROJECT_DIR=$(resolve_project_path "$ENV_NAME")
 
                     if [ -z "$PROJECT_DIR" ]; then
-                        echo -e "${RED}❌ Project not found: $ENV_NAME${NC}"
+                        echo -e "${RED}❌ Projet introuvable : $ENV_NAME${NC}"
                     else
-                        log INFO "Menu: toggling web inspector for $ENV_NAME ($PROJECT_DIR)"
-                        toggle_web_inspector "$PROJECT_DIR"
-                        env_restart "$ENV_NAME"
+                        # Read current preferences
+                        local insp_state eruda_state
+                        insp_state=$(get_tools_pref "$PROJECT_DIR" "inspector")
+                        eruda_state=$(get_tools_pref "$PROJECT_DIR" "eruda")
+
+                        local insp_icon eruda_icon
+                        [ "$insp_state" = "enabled" ] && insp_icon="✅" || insp_icon="❌"
+                        [ "$eruda_state" = "enabled" ] && eruda_icon="✅" || eruda_icon="❌"
+
+                        local insp_action eruda_action
+                        [ "$insp_state" = "enabled" ] && insp_action="Désactiver" || insp_action="Activer"
+                        [ "$eruda_state" = "enabled" ] && eruda_action="Désactiver" || eruda_action="Activer"
+
+                        echo ""
+                        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+                        echo -e "          ${YELLOW}Outils Dev — $ENV_NAME${NC}"
+                        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+                        echo ""
+                        echo -e "  État actuel :"
+                        echo -e "    Inspecteur visuel : $insp_icon $(echo "$insp_state" | sed 's/enabled/Activé/;s/disabled/Désactivé/')"
+                        echo -e "    Console Eruda     : $eruda_icon $(echo "$eruda_state" | sed 's/enabled/Activé/;s/disabled/Désactivé/')"
+                        echo ""
+                        echo -e "  ${CYAN}1)${NC} 🔍 Inspecteur visuel — $insp_action"
+                        echo -e "  ${CYAN}2)${NC} 🖥️  Console Eruda — $eruda_action"
+                        echo -e "  ${CYAN}3)${NC} 🔄 Tout activer"
+                        echo -e "  ${CYAN}4)${NC} ❌ Tout désactiver"
+                        echo ""
+                        echo -e "  ${CYAN}x)${NC} ← Retour"
+                        echo ""
+                        echo -e "${YELLOW}Ton choix :${NC} \c"
+                        read -r tools_choice
+
+                        local needs_restart=false
+
+                        case $tools_choice in
+                            1)
+                                local new_state
+                                [ "$insp_state" = "enabled" ] && new_state="disabled" || new_state="enabled"
+                                set_tool_state "$PROJECT_DIR" "inspector" "$new_state"
+                                echo -e "${GREEN}Inspecteur visuel : $new_state${NC}"
+                                needs_restart=true
+                                ;;
+                            2)
+                                local new_state
+                                [ "$eruda_state" = "enabled" ] && new_state="disabled" || new_state="enabled"
+                                set_tool_state "$PROJECT_DIR" "eruda" "$new_state"
+                                echo -e "${GREEN}Console Eruda : $new_state${NC}"
+                                needs_restart=true
+                                ;;
+                            3)
+                                set_tool_state "$PROJECT_DIR" "inspector" "enabled"
+                                set_tool_state "$PROJECT_DIR" "eruda" "enabled"
+                                echo -e "${GREEN}Tous les outils activés${NC}"
+                                needs_restart=true
+                                ;;
+                            4)
+                                set_tool_state "$PROJECT_DIR" "inspector" "disabled"
+                                set_tool_state "$PROJECT_DIR" "eruda" "disabled"
+                                echo -e "${GREEN}Tous les outils désactivés${NC}"
+                                needs_restart=true
+                                ;;
+                            x|X) ;;
+                            *) echo -e "${RED}Choix invalide${NC}" ;;
+                        esac
+
+                        if [ "$needs_restart" = true ]; then
+                            echo ""
+                            if ui_confirm "Redémarrer $ENV_NAME pour appliquer ?"; then
+                                env_restart "$ENV_NAME"
+                                echo -e "${GREEN}✅ $ENV_NAME redémarré${NC}"
+                            else
+                                echo -e "${YELLOW}💡 Les changements seront appliqués au prochain redémarrage${NC}"
+                            fi
+                        fi
                     fi
                 fi
                 ;;
@@ -857,17 +928,28 @@ main() {
                     PROJECT_DIR=$(resolve_project_path "$ENV_NAME")
 
                     echo ""
-                    echo -e "${RED}⚠️  You are about to delete:${NC}"
-                    echo -e "${YELLOW}   Environment: $ENV_NAME${NC}"
-                    echo -e "${YELLOW}   Directory: $PROJECT_DIR${NC}"
-                    echo ""
+                    echo -e "${RED}⚠️  Tu vas supprimer :${NC}"
+                    echo -e "${YELLOW}   Environnement : $ENV_NAME${NC}"
+                    echo -e "${YELLOW}   Répertoire : $PROJECT_DIR${NC}"
 
-                    if ui_confirm "Type 'yes' to confirm deletion"; then
+                    # Show git safety warnings before asking for confirmation
+                    if [ -d "$PROJECT_DIR" ]; then
+                        local git_warnings
+                        git_warnings=$(env_check_git_safety "$PROJECT_DIR" 2>&1)
+                        if [ $? -ne 0 ]; then
+                            echo ""
+                            echo -e "${RED}⚠️  Travail non sauvegardé détecté :${NC}"
+                            echo "$git_warnings"
+                        fi
+                    fi
+
+                    echo ""
+                    if ui_confirm "Confirmer la suppression ?"; then
                         log INFO "Menu: removing environment $ENV_NAME (dir: $PROJECT_DIR)"
-                        env_remove "$ENV_NAME"
-                        echo -e "${GREEN}✅ Environment removed!${NC}"
+                        env_remove "$ENV_NAME" --force
+                        echo -e "${GREEN}✅ Environnement supprimé !${NC}"
                     else
-                        echo -e "${BLUE}Cancelled - nothing was deleted${NC}"
+                        echo -e "${BLUE}Annulé — rien n'a été supprimé${NC}"
                     fi
                 fi
                 ;;

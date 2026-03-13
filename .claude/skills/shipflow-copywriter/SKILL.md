@@ -119,6 +119,7 @@ Use Exa/WebSearch to:
 **How-To:**
 - "How to [Achieve Outcome] in [Timeframe] (Even If [Objection])"
 - "Comment [Résultat] en [Délai] (Même Si [Objection])" (FR)
+- "Comment tu peux [Résultat] en [Délai] (Même Si [Objection])" (FR, tutoiement)
 
 **Question:**
 - "Still [Doing Painful Thing]? There's a Better Way."
@@ -140,10 +141,11 @@ Use Exa/WebSearch to:
 - "Why [Common Advice] Is Actually Killing Your [Metric]"
 - "[Controversial Opinion]: The Real Reason [Problem Exists]"
 
-**French-Specific:**
-- "Arrêtez de [Douleur]. Commencez à [Bénéfice]."
+**French-Specific (tutoiement):**
+- "Arrête de [Douleur]. Commence à [Bénéfice]."
 - "La Méthode [X] Pour [Résultat] (Prouvée par [Nombre] Utilisateurs)"
 - "Pourquoi [X] [Audience] Ont Choisi [Produit] en [Année]"
+- "Tu [Douleur] encore ? Il y a mieux."
 
 ### Step 3: Deliver with scoring
 
@@ -365,17 +367,17 @@ Generate button text, microcopy, and urgency variants.
 **Action-Oriented (Primary):**
 - "Start Your Free Trial"
 - "Get [Product] Now"
-- "Commencer Gratuitement" (FR)
+- "Commence Gratuitement" (FR)
 
 **Outcome-Oriented:**
 - "Start [Achieving Outcome]"
 - "Get My [Deliverable]"
-- "Découvrir Comment [Résultat]" (FR)
+- "Découvre Comment [Résultat]" (FR)
 
 **Risk-Reducing:**
 - "Try Free for 14 Days — No Credit Card"
 - "Start Free. Upgrade When Ready."
-- "Essayer Sans Engagement" (FR)
+- "Essaie Sans Engagement" (FR)
 
 **Urgency:**
 - "Claim Your Spot (XX Left)"
@@ -387,7 +389,7 @@ Generate button text, microcopy, and urgency variants.
 - "No credit card required. Cancel anytime."
 - "Join [X,000]+ [audience] who trust [product]"
 - "30-day money-back guarantee"
-- "Sans carte bancaire. Annulez quand vous voulez." (FR)
+- "Sans carte bancaire. Annule quand tu veux." (FR)
 
 Output: 10+ CTA variants with microcopy, scored by likely conversion impact.
 
@@ -448,11 +450,11 @@ All pieces should be tonally consistent and reference each other (landing page C
 French copywriting has specific conventions:
 
 - **Typographic spaces** -- Use non-breaking space before `:`, `;`, `!`, `?`
-- **Vouvoiement vs tutoiement** -- Default to "vous" (formal) unless the brand is casual/young (then "tu")
+- **Tutoiement par défaut** -- Utiliser "tu" (informel, direct, proche). Le vouvoiement sonne corporate et distant — on veut créer une connexion.
 - **French punctuation** -- Guillemets « » not " " for quotes
 - **Avoid anglicisms** -- "Télécharger" not "Downloader", "Courriel" not "Email" (though "email" is widely accepted)
-- **French urgency words** -- "Offre limitée", "Plus que X places", "Dernière chance", "Ne manquez pas"
-- **French trust signals** -- "Satisfait ou remboursé", "Sans engagement", "Garanti X jours"
+- **French urgency words** -- "Offre limitée", "Plus que X places", "Dernière chance", "Ne rate pas ça"
+- **French trust signals** -- "Satisfait ou remboursé", "Sans engagement", "Garanti X jours", "Teste gratuitement"
 - **Cultural tone** -- French audiences respond better to sophistication and logic than aggressive American-style hype. Less exclamation marks, more elegant persuasion.
 
 When generating French copy, apply these rules automatically. When generating bilingual, output EN first, then FR variant with a `🇫🇷` header.

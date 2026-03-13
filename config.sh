@@ -66,8 +66,12 @@ export SHIPFLOW_LOG_LEVEL="${SHIPFLOW_LOG_LEVEL:-INFO}"
 export SHIPFLOW_GITHUB_REPO_LIMIT="${SHIPFLOW_GITHUB_REPO_LIMIT:-500}"
 
 # ============================================================================
-# WEB INSPECTOR CONFIGURATION
+# DEV TOOLS CONFIGURATION (Inspector & Eruda)
 # ============================================================================
+
+# Default state for new projects (when .shipflow-tools.conf doesn't exist)
+export SHIPFLOW_INSPECTOR_DEFAULT="${SHIPFLOW_INSPECTOR_DEFAULT:-enabled}"
+export SHIPFLOW_ERUDA_DEFAULT="${SHIPFLOW_ERUDA_DEFAULT:-enabled}"
 
 # Screenshot upload expiration (seconds)
 export SHIPFLOW_SCREENSHOT_EXPIRATION="${SHIPFLOW_SCREENSHOT_EXPIRATION:-600}"
