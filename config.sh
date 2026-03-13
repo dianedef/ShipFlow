@@ -37,6 +37,10 @@ export SHIPFLOW_SSH_KEEPALIVE_MAX="${SHIPFLOW_SSH_KEEPALIVE_MAX:-3}"
 export SHIPFLOW_SSH_REMOTE_USER="${SHIPFLOW_SSH_REMOTE_USER:-root}"
 export SHIPFLOW_SSH_REMOTE_HOST="${SHIPFLOW_SSH_REMOTE_HOST:-hetzner}"
 
+# Extra static tunnel ports (comma-separated, port:label format)
+# These are always tunneled in addition to PM2-detected ports
+export SHIPFLOW_EXTRA_TUNNELS="${SHIPFLOW_EXTRA_TUNNELS:-3773:t3-code}"
+
 # ============================================================================
 # LOGGING CONFIGURATION
 # ============================================================================
@@ -62,8 +66,12 @@ export SHIPFLOW_LOG_LEVEL="${SHIPFLOW_LOG_LEVEL:-INFO}"
 export SHIPFLOW_GITHUB_REPO_LIMIT="${SHIPFLOW_GITHUB_REPO_LIMIT:-500}"
 
 # ============================================================================
-# WEB INSPECTOR CONFIGURATION
+# DEV TOOLS CONFIGURATION (Inspector & Eruda)
 # ============================================================================
+
+# Default state for new projects (when .shipflow-tools.conf doesn't exist)
+export SHIPFLOW_INSPECTOR_DEFAULT="${SHIPFLOW_INSPECTOR_DEFAULT:-enabled}"
+export SHIPFLOW_ERUDA_DEFAULT="${SHIPFLOW_ERUDA_DEFAULT:-enabled}"
 
 # Screenshot upload expiration (seconds)
 export SHIPFLOW_SCREENSHOT_EXPIRATION="${SHIPFLOW_SCREENSHOT_EXPIRATION:-600}"

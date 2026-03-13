@@ -135,8 +135,21 @@ except:
 \"" 2>/dev/null)
 
 if [ -z "$PORTS" ]; then
-    echo -e "${RED}✗ Aucun port trouvé ou PM2 n'est pas accessible${NC}"
-    echo -e "${YELLOW}  Vérifiez que PM2 tourne sur le serveur distant${NC}"
+    echo -e "${YELLOW}⚠ Aucun port PM2 trouvé${NC}"
+fi
+
+# Append extra static tunnels from config
+if [ -n "${SHIPFLOW_EXTRA_TUNNELS:-}" ]; then
+    if [ -n "$PORTS" ]; then
+        PORTS="${PORTS},${SHIPFLOW_EXTRA_TUNNELS}"
+    else
+        PORTS="${SHIPFLOW_EXTRA_TUNNELS}"
+    fi
+    echo -e "${BLUE}📌 Extra tunnels: ${SHIPFLOW_EXTRA_TUNNELS}${NC}"
+fi
+
+if [ -z "$PORTS" ]; then
+    echo -e "${RED}✗ Aucun port à tunneler${NC}"
     exit 1
 fi
 
@@ -177,7 +190,7 @@ for port_info in "${PORT_ARRAY[@]}"; do
         -o "ServerAliveInterval=${SHIPFLOW_SSH_KEEPALIVE_INTERVAL:-30}" \
         -o "ServerAliveCountMax=${SHIPFLOW_SSH_KEEPALIVE_MAX:-3}" \
         -o "ExitOnForwardFailure=yes" \
-        -L "${port}:localhost:${port}" \
+        -L "127.0.0.1:${port}:localhost:${port}" \
         "$REMOTE_HOST" 2>/dev/null
 done
 
