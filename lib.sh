@@ -2464,9 +2464,9 @@ EOF
 
     echo -e "${GREEN}✅ Fichier ecosystem.config.cjs créé/mis à jour${NC}"
 
-    # Inject web inspector before starting the dev server (skip for Expo)
+    # Inject dev tools based on per-project preferences (skip for Expo)
     if [ "$is_expo" = "false" ]; then
-        (cd "$project_dir" && init_web_inspector)
+        (cd "$project_dir" && init_dev_tools)
     fi
 
     # Atomic cleanup of existing process (Priority 3 #11: Fix race condition)
@@ -2556,91 +2556,142 @@ env_stop() {
     return 0
 }
 
-# Web Inspector Functions
+# ============================================================================
+# DEV TOOLS — Inspector & Eruda (per-project preferences)
+# ============================================================================
+
 # Generate CSS selector for an element
 generate_css_selector() {
     local element="$1"
     echo "css-selector-for-$element" | sed 's/[^a-zA-Z0-9_-]/-/g'
 }
 
-# Initialize web inspector
-init_web_inspector() {
-    local script_path="${SCRIPT_DIR}/injectors/web-inspector.js"
-    local script_name="shipflow-inspector.js"
-    local marker="<!-- shipflow-inspector -->"
-    local script_tag='<script src="/shipflow-inspector.js" defer></script>'
+# -----------------------------------------------------------------------------
+# get_tools_pref - Read a dev tool preference for a project
+#
+# Arguments:
+#   $1 - Project directory (absolute path)
+#   $2 - Key name ("inspector" or "eruda")
+#
+# Outputs:
+#   "enabled" or "disabled" to stdout
+# -----------------------------------------------------------------------------
+get_tools_pref() {
+    local project_dir="$1"
+    local key="$2"
+    local conf_file="$project_dir/.shipflow-tools.conf"
 
-    if [ ! -f "$script_path" ]; then
-        log ERROR "Web inspector script not found at $script_path"
-        echo "Error: Web inspector script not found at $script_path"
+    if [ -f "$conf_file" ]; then
+        local value
+        value=$(grep "^${key}=" "$conf_file" 2>/dev/null | head -1 | cut -d'=' -f2)
+        if [ "$value" = "disabled" ] || [ "$value" = "enabled" ]; then
+            echo "$value"
+            return
+        fi
+    fi
+
+    # Fall back to config.sh defaults
+    case "$key" in
+        inspector) echo "${SHIPFLOW_INSPECTOR_DEFAULT:-enabled}" ;;
+        eruda)     echo "${SHIPFLOW_ERUDA_DEFAULT:-enabled}" ;;
+        *)         echo "enabled" ;;
+    esac
+}
+
+# -----------------------------------------------------------------------------
+# set_tools_pref - Write a dev tool preference for a project
+#
+# Arguments:
+#   $1 - Project directory (absolute path)
+#   $2 - Key name ("inspector" or "eruda")
+#   $3 - Value ("enabled" or "disabled")
+# -----------------------------------------------------------------------------
+set_tools_pref() {
+    local project_dir="$1"
+    local key="$2"
+    local value="$3"
+    local conf_file="$project_dir/.shipflow-tools.conf"
+
+    if [ ! -f "$conf_file" ]; then
+        echo "# ShipFlow Dev Tools Preferences" > "$conf_file"
+        echo "inspector=enabled" >> "$conf_file"
+        echo "eruda=enabled" >> "$conf_file"
+    fi
+
+    if grep -q "^${key}=" "$conf_file" 2>/dev/null; then
+        sed -i "s|^${key}=.*|${key}=${value}|" "$conf_file"
+    else
+        echo "${key}=${value}" >> "$conf_file"
+    fi
+
+    log INFO "Set $key=$value for $(basename "$project_dir")"
+}
+
+# -----------------------------------------------------------------------------
+# inject_tool_script - Inject a JS file + script tag into a project
+#
+# Description:
+#   Copies a JS source file to public/ and injects the corresponding
+#   <script> tag before </body> in the appropriate layout file.
+#   Handles: index.html, Astro layouts, Next.js layouts, monorepos.
+#
+# Arguments:
+#   $1 - Source file path (e.g., injectors/web-inspector.js)
+#   $2 - Public file name (e.g., shipflow-inspector.js)
+#   $3 - Marker ID (e.g., shipflow-inspector)
+#
+# Must be called from the project directory (cd "$project_dir" first).
+# -----------------------------------------------------------------------------
+inject_tool_script() {
+    local source_path="$1"
+    local public_name="$2"
+    local marker_id="$3"
+    local marker="<!-- ${marker_id} -->"
+    local script_tag="<script src=\"/${public_name}\" defer></script>"
+
+    if [ ! -f "$source_path" ]; then
+        log ERROR "Script not found: $source_path"
         return 1
     fi
 
-    # Step 1: Copy script to project's public/ directory
+    # Copy to public/
     mkdir -p public
-    cp "$script_path" "public/$script_name"
-    echo "Copied web inspector to public/$script_name"
+    cp "$source_path" "public/$public_name"
 
-    # Step 2: Add script tag to the appropriate file
+    # Inject into the appropriate layout file
     if [ -f "index.html" ]; then
-        # Vite/React/Vue projects with root index.html
-        if ! grep -q "shipflow-inspector" "index.html"; then
+        if ! grep -q "$marker_id" "index.html"; then
             sed -i "s|</body>|  ${marker}\n  ${script_tag}\n</body>|" "index.html"
-            echo "Injected script tag into index.html"
-        else
-            echo "Script tag already present in index.html"
         fi
     elif [ -f "package.json" ] && grep -q '"astro"' package.json; then
-        # Astro projects: inject into layout files
-        local injected=false
         for layout in src/layouts/*.astro; do
             [ -f "$layout" ] || continue
-            if grep -q "</body>" "$layout" && ! grep -q "shipflow-inspector" "$layout"; then
+            if grep -q "</body>" "$layout" && ! grep -q "$marker_id" "$layout"; then
                 sed -i "s|</body>|  ${marker}\n  ${script_tag}\n</body>|" "$layout"
-                echo "Injected script tag into $layout"
-                injected=true
-            elif grep -q "shipflow-inspector" "$layout"; then
-                echo "Script tag already present in $layout"
-                injected=true
             fi
         done
-        if [ "$injected" = false ]; then
-            log WARNING "No layout with </body> found for Astro project"
-            echo "Warning: No layout with </body> found for Astro project"
-        fi
     else
-        # Check for Next.js project (direct or monorepo)
+        # Next.js detection (direct or monorepo)
         local is_nextjs=false
         local layout_file=""
-        local public_dir="public"
 
-        # Direct Next.js detection (next.config.*, next-env.d.ts, or "next" in package.json)
         if [ -f "next.config.ts" ] || [ -f "next.config.js" ] || [ -f "next.config.mjs" ] || [ -f "next-env.d.ts" ] || ([ -f "package.json" ] && grep -q '"next"' package.json); then
             is_nextjs=true
             for candidate in "app/layout.tsx" "app/layout.jsx" "src/app/layout.tsx" "src/app/layout.jsx"; do
-                if [ -f "$candidate" ]; then
-                    layout_file="$candidate"
-                    break
-                fi
+                [ -f "$candidate" ] && layout_file="$candidate" && break
             done
         fi
 
-        # Monorepo detection (check apps/* and packages/* for Next.js indicators)
+        # Monorepo detection
         if [ "$is_nextjs" = false ]; then
             for app_dir in apps/* packages/*; do
                 [ -d "$app_dir" ] || continue
-                # Check for Next.js indicators in this app
                 if [ -f "$app_dir/next.config.ts" ] || [ -f "$app_dir/next.config.js" ] || [ -f "$app_dir/next.config.mjs" ] || [ -f "$app_dir/next-env.d.ts" ] || ([ -f "$app_dir/package.json" ] && grep -q '"next"' "$app_dir/package.json"); then
                     is_nextjs=true
-                    # Find layout in this app directory
                     for candidate in "$app_dir/app/layout.tsx" "$app_dir/app/layout.jsx" "$app_dir/src/app/layout.tsx" "$app_dir/src/app/layout.jsx"; do
                         if [ -f "$candidate" ]; then
                             layout_file="$candidate"
-                            # For monorepos, also copy to the app's public dir
-                            if [ -d "$app_dir/public" ]; then
-                                cp "$script_path" "$app_dir/public/$script_name"
-                                echo "Copied web inspector to $app_dir/public/$script_name"
-                            fi
+                            [ -d "$app_dir/public" ] && cp "$source_path" "$app_dir/public/$public_name"
                             break 2
                         fi
                     done
@@ -2648,59 +2699,151 @@ init_web_inspector() {
             done
         fi
 
-        if [ "$is_nextjs" = true ]; then
-            if [ -z "$layout_file" ]; then
-                log WARNING "Next.js project detected but no app/layout found"
-                echo "Warning: Next.js project detected but no app/layout found"
-            elif grep -q "shipflow-inspector" "$layout_file"; then
-                echo "Script already present in $layout_file"
-            else
+        if [ "$is_nextjs" = true ] && [ -n "$layout_file" ]; then
+            if ! grep -q "$marker_id" "$layout_file"; then
                 # Add Script import if not present
                 if ! grep -q "from ['\"]next/script['\"]" "$layout_file"; then
-                    # Add import after the first import line
                     sed -i '0,/^import /s//import Script from "next\/script";\n&/' "$layout_file"
-                    echo "Added Script import to $layout_file"
                 fi
-
-                # Add Script component before </body>
-                local nextjs_script='<Script src="/shipflow-inspector.js" strategy="afterInteractive" id="shipflow-inspector" />'
+                local nextjs_script="<Script src=\"/${public_name}\" strategy=\"afterInteractive\" id=\"${marker_id}\" />"
                 if grep -q "</body>" "$layout_file"; then
                     sed -i "s|</body>|        ${nextjs_script}\n      </body>|" "$layout_file"
-                    echo "Injected Script component into $layout_file"
-                else
-                    log WARNING "No </body> tag found in $layout_file"
-                    echo "Warning: No </body> tag found in $layout_file"
                 fi
             fi
-        else
-            log WARNING "Could not find injection target (no index.html, Astro layout, or Next.js layout)"
-            echo "Warning: Could not find injection target (no index.html, Astro layout, or Next.js layout)"
         fi
     fi
-
-    echo "Web inspector configured"
 }
 
 # -----------------------------------------------------------------------------
-# toggle_web_inspector - Enable or disable web inspector for a project
+# remove_tool_script - Remove an injected JS file + script tags from a project
+#
+# Arguments:
+#   $1 - Public file name (e.g., shipflow-inspector.js)
+#   $2 - Marker ID (e.g., shipflow-inspector)
+#
+# Must be called from the project directory (cd "$project_dir" first).
+# -----------------------------------------------------------------------------
+remove_tool_script() {
+    local public_name="$1"
+    local marker_id="$2"
+
+    # Remove public JS file
+    rm -f "public/$public_name"
+
+    # Remove from index.html
+    [ -f "index.html" ] && sed -i "/${marker_id}/d" "index.html"
+
+    # Remove from Astro layouts
+    for layout in src/layouts/*.astro; do
+        [ -f "$layout" ] || continue
+        sed -i "/${marker_id}/d" "$layout"
+    done
+
+    # Remove from Next.js layouts
+    for candidate in "app/layout.tsx" "app/layout.jsx" "src/app/layout.tsx" "src/app/layout.jsx"; do
+        [ -f "$candidate" ] || continue
+        sed -i "/${marker_id}/d" "$candidate"
+    done
+
+    # Remove from monorepo layouts
+    for app_dir in apps/* packages/*; do
+        [ -d "$app_dir" ] || continue
+        rm -f "$app_dir/public/$public_name" 2>/dev/null
+        for candidate in "$app_dir/app/layout.tsx" "$app_dir/app/layout.jsx" "$app_dir/src/app/layout.tsx" "$app_dir/src/app/layout.jsx"; do
+            [ -f "$candidate" ] || continue
+            sed -i "/${marker_id}/d" "$candidate"
+        done
+    done
+}
+
+# -----------------------------------------------------------------------------
+# init_dev_tools - Inject dev tools based on per-project preferences
 #
 # Description:
-#   Toggles the web inspector injection. If the inspector JS file exists in
-#   the project's public/ directory, it removes it and strips injected script
-#   tags. If not present, calls init_web_inspector to inject it.
+#   Reads .shipflow-tools.conf to decide which tools to inject.
+#   Injects inspector and/or eruda based on preferences.
+#   Replaces the old init_web_inspector (backwards compatible).
+#
+# Must be called from the project directory (cd "$project_dir" first).
+# -----------------------------------------------------------------------------
+init_dev_tools() {
+    local project_dir="$PWD"
+    local inspector_pref
+    local eruda_pref
+    inspector_pref=$(get_tools_pref "$project_dir" "inspector")
+    eruda_pref=$(get_tools_pref "$project_dir" "eruda")
+
+    local injected=false
+
+    if [ "$inspector_pref" = "enabled" ]; then
+        inject_tool_script "${SCRIPT_DIR}/injectors/web-inspector.js" "shipflow-inspector.js" "shipflow-inspector"
+        injected=true
+    else
+        # Make sure it's removed if disabled
+        remove_tool_script "shipflow-inspector.js" "shipflow-inspector"
+    fi
+
+    if [ "$eruda_pref" = "enabled" ]; then
+        inject_tool_script "${SCRIPT_DIR}/injectors/eruda-console.js" "shipflow-eruda.js" "shipflow-eruda"
+        injected=true
+    else
+        remove_tool_script "shipflow-eruda.js" "shipflow-eruda"
+    fi
+
+    if [ "$injected" = true ]; then
+        echo "Outils dev configurés (inspecteur: $inspector_pref, eruda: $eruda_pref)"
+    else
+        echo "Outils dev désactivés pour ce projet"
+    fi
+}
+
+# Backwards-compatible alias
+init_web_inspector() {
+    init_dev_tools
+}
+
+# -----------------------------------------------------------------------------
+# set_tool_state - Enable or disable a specific dev tool for a project
 #
 # Arguments:
 #   $1 - Project directory (absolute path)
+#   $2 - Tool name ("inspector" or "eruda")
+#   $3 - State ("enabled" or "disabled")
+# -----------------------------------------------------------------------------
+set_tool_state() {
+    local project_dir="$1"
+    local tool="$2"
+    local state="$3"
+
+    if [ -z "$project_dir" ] || [ ! -d "$project_dir" ]; then
+        error "Répertoire invalide : $project_dir"
+        return 1
+    fi
+
+    set_tools_pref "$project_dir" "$tool" "$state"
+
+    cd "$project_dir" || return 1
+
+    if [ "$tool" = "inspector" ]; then
+        if [ "$state" = "enabled" ]; then
+            inject_tool_script "${SCRIPT_DIR}/injectors/web-inspector.js" "shipflow-inspector.js" "shipflow-inspector"
+        else
+            remove_tool_script "shipflow-inspector.js" "shipflow-inspector"
+        fi
+    elif [ "$tool" = "eruda" ]; then
+        if [ "$state" = "enabled" ]; then
+            inject_tool_script "${SCRIPT_DIR}/injectors/eruda-console.js" "shipflow-eruda.js" "shipflow-eruda"
+        else
+            remove_tool_script "shipflow-eruda.js" "shipflow-eruda"
+        fi
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# toggle_web_inspector - Backwards-compatible toggle (both tools at once)
 #
-# Returns:
-#   0 - Success
-#   1 - Invalid directory
-#
-# Outputs:
-#   "Web inspector enabled" or "Web inspector disabled"
-#
-# Example:
-#   toggle_web_inspector "/root/myapp"
+# Arguments:
+#   $1 - Project directory (absolute path)
 # -----------------------------------------------------------------------------
 toggle_web_inspector() {
     local project_dir=$1
@@ -2710,49 +2853,160 @@ toggle_web_inspector() {
         return 1
     fi
 
-    cd "$project_dir" || return 1
+    local inspector_pref
+    inspector_pref=$(get_tools_pref "$project_dir" "inspector")
 
-    if [ -f "public/shipflow-inspector.js" ]; then
-        # Disable: remove JS file
-        rm -f "public/shipflow-inspector.js"
-
-        # Remove injected lines from index.html
-        if [ -f "index.html" ]; then
-            sed -i '/shipflow-inspector/d' "index.html"
-        fi
-
-        # Remove from Astro layouts
-        for layout in src/layouts/*.astro; do
-            [ -f "$layout" ] || continue
-            sed -i '/shipflow-inspector/d' "$layout"
-        done
-
-        # Remove from Next.js layouts
-        for candidate in "app/layout.tsx" "app/layout.jsx" "src/app/layout.tsx" "src/app/layout.jsx"; do
-            [ -f "$candidate" ] || continue
-            sed -i '/shipflow-inspector/d' "$candidate"
-        done
-
-        # Remove from monorepo app layouts
-        for app_dir in apps/* packages/*; do
-            [ -d "$app_dir" ] || continue
-            rm -f "$app_dir/public/shipflow-inspector.js" 2>/dev/null
-            for candidate in "$app_dir/app/layout.tsx" "$app_dir/app/layout.jsx" "$app_dir/src/app/layout.tsx" "$app_dir/src/app/layout.jsx"; do
-                [ -f "$candidate" ] || continue
-                sed -i '/shipflow-inspector/d' "$candidate"
-            done
-        done
-
-        echo "Web inspector disabled"
-        log INFO "Web inspector disabled for $project_dir"
+    if [ "$inspector_pref" = "enabled" ]; then
+        set_tool_state "$project_dir" "inspector" "disabled"
+        set_tool_state "$project_dir" "eruda" "disabled"
+        echo "Outils dev désactivés"
+        log INFO "Dev tools disabled for $project_dir"
     else
-        # Enable: call init_web_inspector
-        init_web_inspector
-        echo "Web inspector enabled"
-        log INFO "Web inspector enabled for $project_dir"
+        set_tool_state "$project_dir" "inspector" "enabled"
+        set_tool_state "$project_dir" "eruda" "enabled"
+        echo "Outils dev activés"
+        log INFO "Dev tools enabled for $project_dir"
     fi
 
     return 0
+}
+
+# -----------------------------------------------------------------------------
+# env_check_git_safety - Check for unsaved git work in a project directory
+#
+# Description:
+#   Checks if a directory is a git repo with uncommitted changes, untracked
+#   files, or unpushed commits. Returns a summary of what would be lost.
+#
+# Arguments:
+#   $1 - Project directory path
+#
+# Returns:
+#   0 - Clean (safe to delete)
+#   1 - Dirty (unsaved work detected)
+#
+# Outputs:
+#   Warning messages describing unsaved work
+# -----------------------------------------------------------------------------
+env_check_git_safety() {
+    local project_dir="$1"
+
+    # Not a git repo — nothing to check
+    if [ ! -d "$project_dir/.git" ]; then
+        return 0
+    fi
+
+    local has_issues=false
+
+    # Check for uncommitted changes (staged + unstaged)
+    local changed_files
+    changed_files=$(git -C "$project_dir" status --porcelain 2>/dev/null)
+    if [ -n "$changed_files" ]; then
+        has_issues=true
+        local modified_count=$(echo "$changed_files" | grep -c "^ M\|^M " 2>/dev/null || echo 0)
+        local untracked_count=$(echo "$changed_files" | grep -c "^??" 2>/dev/null || echo 0)
+        local staged_count=$(echo "$changed_files" | grep -c "^[ADMR] " 2>/dev/null || echo 0)
+
+        echo -e "${YELLOW}  📝 Modifications non commitées :${NC}"
+        if [ "$modified_count" -gt 0 ]; then
+            echo -e "${YELLOW}     - $modified_count fichier(s) modifié(s)${NC}"
+        fi
+        if [ "$staged_count" -gt 0 ]; then
+            echo -e "${YELLOW}     - $staged_count fichier(s) stagé(s)${NC}"
+        fi
+        if [ "$untracked_count" -gt 0 ]; then
+            echo -e "${YELLOW}     - $untracked_count fichier(s) non tracké(s)${NC}"
+        fi
+    fi
+
+    # Check for unpushed commits
+    local upstream
+    upstream=$(git -C "$project_dir" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null)
+    if [ -n "$upstream" ]; then
+        local unpushed
+        unpushed=$(git -C "$project_dir" log "$upstream"..HEAD --oneline 2>/dev/null)
+        if [ -n "$unpushed" ]; then
+            has_issues=true
+            local unpushed_count
+            unpushed_count=$(echo "$unpushed" | wc -l)
+            echo -e "${YELLOW}  📤 $unpushed_count commit(s) non poussé(s) vers $upstream :${NC}"
+            echo "$unpushed" | head -5 | while IFS= read -r line; do
+                echo -e "${YELLOW}     - $line${NC}"
+            done
+            if [ "$unpushed_count" -gt 5 ]; then
+                echo -e "${YELLOW}     ... et $(( unpushed_count - 5 )) autre(s)${NC}"
+            fi
+        fi
+    else
+        # No upstream — check if there are any commits at all (local-only repo)
+        local has_commits
+        has_commits=$(git -C "$project_dir" rev-parse HEAD 2>/dev/null)
+        if [ -n "$has_commits" ]; then
+            local remote_count
+            remote_count=$(git -C "$project_dir" remote 2>/dev/null | wc -l)
+            if [ "$remote_count" -eq 0 ]; then
+                has_issues=true
+                local total_commits
+                total_commits=$(git -C "$project_dir" rev-list --count HEAD 2>/dev/null || echo 0)
+                echo -e "${YELLOW}  📤 Repo local sans remote — $total_commits commit(s) seraient perdus${NC}"
+            fi
+        fi
+    fi
+
+    if [ "$has_issues" = true ]; then
+        return 1
+    fi
+    return 0
+}
+
+# -----------------------------------------------------------------------------
+# env_cleanup_external_data - Remove ShipFlow data and Caddy entries for a project
+#
+# Description:
+#   Cleans up external references to a project:
+#   - Removes shipflow_data/projects/<name>/ directory
+#   - Removes entry from shipflow_data/PROJECTS.md
+#   - Warns about Caddy routes (does not auto-modify Caddyfile)
+#
+# Arguments:
+#   $1 - Environment name
+#   $2 - Project directory path
+#
+# Side Effects:
+#   - Deletes shipflow_data/projects/<name>/
+#   - Edits PROJECTS.md to remove the row
+#   - Logs warnings about Caddy entries
+# -----------------------------------------------------------------------------
+env_cleanup_external_data() {
+    local env_name="$1"
+    local project_dir="$2"
+    local shipflow_data="${SHIPFLOW_DATA_DIR:-$HOME/shipflow_data}"
+    local project_data_dir="$shipflow_data/projects/$env_name"
+
+    # Clean up shipflow_data/projects/<name>/
+    if [ -d "$project_data_dir" ]; then
+        rm -rf "$project_data_dir"
+        log INFO "Removed shipflow_data for $env_name: $project_data_dir"
+        echo -e "${BLUE}  🗑  Données ShipFlow supprimées ($project_data_dir)${NC}"
+    fi
+
+    # Remove entry from PROJECTS.md
+    local projects_file="$shipflow_data/PROJECTS.md"
+    if [ -f "$projects_file" ] && grep -q "| $env_name |" "$projects_file"; then
+        sed -i "/| $env_name |/d" "$projects_file"
+        log INFO "Removed $env_name from $projects_file"
+        echo -e "${BLUE}  🗑  Entrée retirée de PROJECTS.md${NC}"
+    fi
+
+    # Check Caddy for routes pointing to this project
+    if [ -f "/etc/caddy/Caddyfile" ]; then
+        local port
+        port=$(get_port_from_pm2 "$env_name" 2>/dev/null)
+        if [ -n "$port" ] && grep -q "localhost:$port" /etc/caddy/Caddyfile 2>/dev/null; then
+            warning "Le Caddyfile contient encore une route vers localhost:$port ($env_name)"
+            echo -e "${YELLOW}  💡 Pense à régénérer le Caddyfile (option Publish du menu)${NC}"
+        fi
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -2760,18 +3014,25 @@ toggle_web_inspector() {
 #
 # Description:
 #   Stops the PM2 process and deletes the project directory.
+#   Before deletion, checks for unsaved git work (uncommitted changes,
+#   unpushed commits, untracked files) and warns the user.
+#   Also cleans up external ShipFlow data and warns about Caddy routes.
 #   This operation is DESTRUCTIVE and cannot be undone.
 #
 # Arguments:
 #   $1 - Environment identifier (name or path)
+#   $2 - (optional) "--force" to skip git safety checks
 #
 # Returns:
 #   0 - Environment removed
 #   1 - Error occurred
+#   2 - Cancelled by user (unsaved git work)
 #
 # Side Effects:
 #   - Deletes PM2 process
 #   - Removes entire project directory (DESTRUCTIVE!)
+#   - Removes shipflow_data/projects/<name>/
+#   - Removes entry from PROJECTS.md
 #   - Invalidates PM2 cache
 #
 # Warning:
@@ -2779,9 +3040,11 @@ toggle_web_inspector() {
 #
 # Example:
 #   env_remove "myapp"
+#   env_remove "myapp" --force
 # -----------------------------------------------------------------------------
 env_remove() {
     local identifier=$1
+    local force_flag="${2:-}"
 
     # Validate identifier
     if [ -z "$identifier" ]; then
@@ -2797,6 +3060,26 @@ env_remove() {
     fi
 
     local env_name=$(basename "$project_dir")
+
+    # Git safety check (skip with --force)
+    if [ "$force_flag" != "--force" ] && [ -d "$project_dir" ]; then
+        local git_warnings
+        git_warnings=$(env_check_git_safety "$project_dir" 2>&1)
+        if [ $? -ne 0 ]; then
+            echo ""
+            echo -e "${RED}⚠️  Travail non sauvegardé détecté dans $env_name :${NC}"
+            echo "$git_warnings"
+            echo ""
+            if ! ui_confirm "Supprimer quand même $env_name ? Tout sera perdu."; then
+                echo -e "${BLUE}Annulé — rien n'a été supprimé${NC}"
+                log INFO "env_remove cancelled for $env_name: unsaved git work"
+                return 2
+            fi
+        fi
+    fi
+
+    # Check Caddy routes before deleting PM2 (we need the port info)
+    env_cleanup_external_data "$env_name" "$project_dir"
 
     # Atomic deletion of PM2 process (Priority 3 #11: Fix race condition)
     # Use pm2 delete with idempotent operation (no check-then-act)
@@ -3811,9 +4094,9 @@ deploy_github_project() {
             return 1
         fi
 
-        # Remove old project
+        # Remove old project (user already confirmed above)
         echo -e "${YELLOW}Removing old project...${NC}"
-        env_remove "$project_name"
+        env_remove "$project_name" --force
     fi
 
     # Create project directory
@@ -3910,4 +4193,448 @@ deploy_github_project() {
 
     log INFO "Successfully deployed GitHub project: $repo_name"
     return 0
+}
+
+# ============================================================================
+# SHARED MENU FUNCTIONS (used by all menu frontends)
+# ============================================================================
+
+# -----------------------------------------------------------------------------
+# show_shipflow_menu - ShipFlow overview: Tasks, Priorities, Changelog, Audit
+# -----------------------------------------------------------------------------
+show_shipflow_menu() {
+    local SHIPFLOW_DATA="${SHIPFLOW_DATA_DIR:-/home/claude/shipflow_data}"
+    local TASKS_FILE="$SHIPFLOW_DATA/TASKS.md"
+    local AUDIT_FILE="$SHIPFLOW_DATA/AUDIT_LOG.md"
+
+    # First-run: create data directory with starter files if missing
+    if [ ! -d "$SHIPFLOW_DATA" ]; then
+        mkdir -p "$SHIPFLOW_DATA"
+        cat > "$SHIPFLOW_DATA/TASKS.md" << 'TASKS_EOF'
+# Master Project Tracker
+
+> **Priority:** 🔴 P0 blocker · 🟠 P1 high · 🟡 P2 normal · 🟢 P3 low · ⚪ deferred
+> **Status:** 📋 todo · 🔄 in progress · ✅ done · ⛔ blocked · 💤 deferred
+
+---
+
+## Dashboard
+
+| # | Project | Phase | Status | Top Priority |
+|---|---------|-------|--------|--------------|
+
+**Legend:** 🟢 Stable · 🟡 Active · 🟠 Planning · 🔴 Blocked · ⚪ Empty
+
+---
+
+## Backlog
+
+| Pri | Task | Status |
+|-----|------|--------|
+| 🟡 | Add first project with /shipflow-init | 📋 todo |
+TASKS_EOF
+        cat > "$SHIPFLOW_DATA/AUDIT_LOG.md" << 'AUDIT_EOF'
+# Audit Log
+
+> Populated by `/shipflow-audit` skills. Each entry follows the format:
+> `### Audit: [Domain] — [Project] (YYYY-MM-DD)`
+
+---
+AUDIT_EOF
+        cat > "$SHIPFLOW_DATA/PROJECTS.md" << 'PROJECTS_EOF'
+# Projects
+
+## Project Registry
+
+| Name | Path | Stack |
+|------|------|-------|
+
+## Domain Applicability
+
+| Project | Code | Design | Copy | SEO | GTM | Translate | Deps | Perf |
+|---------|------|--------|------|-----|-----|-----------|------|------|
+PROJECTS_EOF
+        echo -e "${GREEN}✅ Created data directory: $SHIPFLOW_DATA${NC}"
+        sleep 1
+    fi
+    local CHANGELOG_FILE="$SCRIPT_DIR/CHANGELOG.md"
+
+    while true; do
+        clear
+        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo -e "               ${YELLOW}⚡ ShipFlow Overview${NC}"
+        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo ""
+
+        # Mini dashboard: show project table from TASKS.md
+        if [ -f "$TASKS_FILE" ]; then
+            grep -E "^\| [0-9]+" "$TASKS_FILE" 2>/dev/null | head -12 | while IFS= read -r line; do
+                echo -e "  $line"
+            done
+            echo ""
+        fi
+
+        echo -e "${GREEN}Choisis :${NC}"
+        echo ""
+        echo -e "  ${CYAN}1)${NC} 📋 Tâches      — Parcourir tous les projets"
+        echo -e "  ${CYAN}2)${NC} 🔴 Priorités   — Afficher P0 & P1 uniquement"
+        echo -e "  ${CYAN}3)${NC} 📝 Changelog   — Voir les changements récents"
+        echo -e "  ${CYAN}4)${NC} 📊 Audit Log   — Scores de qualité"
+        echo ""
+        echo -e "  ${CYAN}x)${NC} ← Retour"
+        echo ""
+        echo -e "${YELLOW}Ton choix :${NC} \c"
+        read -r sf_choice
+
+        case $sf_choice in
+            1)
+                if [ -f "$TASKS_FILE" ]; then
+                    less -R "$TASKS_FILE"
+                else
+                    echo -e "${RED}❌ TASKS.md introuvable : $TASKS_FILE${NC}"
+                    sleep 2
+                fi
+                ;;
+            2)
+                if [ -f "$TASKS_FILE" ]; then
+                    clear
+                    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+                    echo -e "       ${RED}🔴 P0 Bloquants${NC}  &  ${YELLOW}🟠 P1 Haute priorité${NC}"
+                    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+                    echo ""
+                    local current_project=""
+                    while IFS= read -r line; do
+                        if echo "$line" | grep -qE "^## [0-9]+\."; then
+                            current_project=$(echo "$line" | sed 's/^## //')
+                        fi
+                        if echo "$line" | grep -qE "^\| (🔴|🟠)"; then
+                            if [ -n "$current_project" ]; then
+                                echo -e "${BLUE}── $current_project${NC}"
+                                current_project=""
+                            fi
+                            echo "  $line"
+                        fi
+                    done < "$TASKS_FILE"
+                    echo ""
+                    echo -e "${YELLOW}Appuie sur Entrée pour continuer...${NC}"
+                    read -r
+                else
+                    echo -e "${RED}❌ TASKS.md introuvable${NC}"
+                    sleep 2
+                fi
+                ;;
+            3)
+                if [ -f "$CHANGELOG_FILE" ]; then
+                    less -R "$CHANGELOG_FILE"
+                else
+                    echo -e "${RED}❌ CHANGELOG.md introuvable : $CHANGELOG_FILE${NC}"
+                    sleep 2
+                fi
+                ;;
+            4)
+                if [ -f "$AUDIT_FILE" ]; then
+                    less -R "$AUDIT_FILE"
+                else
+                    echo -e "${RED}❌ AUDIT_LOG.md introuvable : $AUDIT_FILE${NC}"
+                    sleep 2
+                fi
+                ;;
+            x|X|q|Q)
+                return 0
+                ;;
+            *)
+                echo -e "${RED}❌ Choix invalide${NC}"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# -----------------------------------------------------------------------------
+# show_help - Paginated help documentation
+# -----------------------------------------------------------------------------
+show_help() {
+    local page=1
+    local total_pages=4
+
+    while true; do
+        clear
+        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo -e "              ${YELLOW}Aide ShipFlow${NC} (Page $page/$total_pages)"
+        echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+        echo ""
+
+        case $page in
+            1)
+                echo -e "${GREEN}🚀 GUIDE DE DEMARRAGE${NC}"
+                echo ""
+                echo -e "  ${CYAN}Étape 1 :${NC} ${GREEN}Prépare ton projet${NC}"
+                echo -e "           Place ton projet dans ${YELLOW}/root/${NC}"
+                echo -e "           (ou clone depuis GitHub via Déployer → GitHub)"
+                echo ""
+                echo -e "  ${CYAN}Étape 2 :${NC} ${GREEN}Démarre ton projet${NC}"
+                echo -e "           Depuis le menu principal, choisis ${YELLOW}Déployer${NC}"
+                echo -e "           Puis ${YELLOW}Auto-detect${NC} et sélectionne ton projet"
+                echo ""
+                echo -e "  ${CYAN}Étape 3 :${NC} ${GREEN}Accède à ton app${NC}"
+                echo -e "           Ton app tourne sur ${YELLOW}http://localhost:<port>${NC}"
+                echo -e "           Vérifie le port dans le ${YELLOW}Dashboard${NC}"
+                echo ""
+                echo -e "  ${CYAN}Étape 4 :${NC} ${GREEN}Publie sur le web (optionnel)${NC}"
+                echo -e "           Va dans ${YELLOW}Options avancées → Publier${NC}"
+                ;;
+            2)
+                echo -e "${GREEN}📐 COMMENT SHIPFLOW FONCTIONNE${NC}"
+                echo ""
+                echo -e "  ${BLUE}1.${NC} Tu sélectionnes un projet"
+                echo -e "  ${BLUE}2.${NC} ShipFlow vérifie s'il a un répertoire ${CYAN}.flox${NC}"
+                echo -e "     ${GREEN}Oui${NC} → utilise l'existant   ${YELLOW}Non${NC} → crée et configure"
+                echo -e "  ${BLUE}3.${NC} Auto-détection du type de projet et commande dev"
+                echo -e "     ${CYAN}package.json${NC} → npm/yarn/pnpm dev"
+                echo -e "     ${CYAN}requirements.txt${NC} → python"
+                echo -e "     ${CYAN}Cargo.toml${NC} → cargo run"
+                echo -e "  ${BLUE}4.${NC} Crée ${CYAN}ecosystem.config.cjs${NC} pour PM2"
+                echo -e "  ${BLUE}5.${NC} PM2 gère le processus :"
+                echo -e "     ${GREEN}• Redémarrage auto en cas de crash${NC}"
+                echo -e "     ${GREEN}• Logs capturés${NC}"
+                echo -e "     ${GREEN}• Gestion des ports${NC}"
+                ;;
+            3)
+                echo -e "${GREEN}🛠️  TECHNOLOGIES SUPPORTEES${NC}"
+                echo ""
+                echo -e "  ${CYAN}Node.js${NC}    package.json → npm/yarn/pnpm dev"
+                echo -e "  ${CYAN}Python${NC}     requirements.txt → venv + pip + python"
+                echo -e "  ${CYAN}Rust${NC}       Cargo.toml → cargo run"
+                echo -e "  ${CYAN}Go${NC}         go.mod → go run ."
+                echo ""
+                echo -e "${GREEN}📦 FRAMEWORKS AUTO-DETECTES${NC}"
+                echo ""
+                echo -e "  ${CYAN}Next.js${NC}       npm dev (PORT via env)"
+                echo -e "  ${CYAN}Astro${NC}         npm dev -- --port \$PORT --host"
+                echo -e "  ${CYAN}Vite${NC}          npm dev -- --port \$PORT --host"
+                echo -e "  ${CYAN}Nuxt${NC}          npm dev --port \$PORT"
+                echo -e "  ${CYAN}Expo${NC}          npx expo start --dev-client --tunnel"
+                echo -e "  ${CYAN}Django${NC}        python manage.py runserver 0.0.0.0:\$PORT"
+                echo -e "  ${CYAN}Flask/FastAPI${NC}  python app.py"
+                ;;
+            4)
+                echo -e "${GREEN}🔍 INSPECTEUR WEB (Sélection visuelle)${NC}"
+                echo ""
+                echo -e "  Injecte un sélecteur visuel dans ton app web :"
+                echo ""
+                echo -e "  ${CYAN}•${NC} Active/désactive via ${YELLOW}Options avancées → Outils Dev${NC}"
+                echo -e "  ${CYAN}•${NC} Affiche des boutons numérotés sur chaque ${YELLOW}<div>${NC}"
+                echo -e "  ${CYAN}•${NC} ${GREEN}Clic${NC} → Copie le XPath"
+                echo -e "  ${CYAN}•${NC} ${GREEN}Appui long${NC} → Menu capture d'écran"
+                echo ""
+                echo -e "${GREEN}🖥️  CONSOLE ERUDA${NC}"
+                echo ""
+                echo -e "  Console de dev mobile (activable par projet) :"
+                echo ""
+                echo -e "  ${CYAN}•${NC} console.log, requêtes réseau, DOM, erreurs JS"
+                echo -e "  ${CYAN}•${NC} localStorage, cookies"
+                echo ""
+                echo -e "${YELLOW}💡 Les deux outils sont configurables indépendamment${NC}"
+                echo -e "   ${CYAN}Options avancées → Outils Dev → choisis un projet${NC}"
+                ;;
+        esac
+
+        echo ""
+        echo -e "${CYAN}──────────────────────────────────────────────────${NC}"
+        echo -e "  ${CYAN}p${NC} Précédent   ${CYAN}Entrée/n${NC} Suivant   ${CYAN}1-4${NC} Aller à   ${CYAN}x${NC} Retour"
+        echo -e "${CYAN}──────────────────────────────────────────────────${NC}"
+        echo ""
+        echo -e "${YELLOW}[$page/$total_pages] :${NC} \c"
+        read -r help_choice
+
+        case $help_choice in
+            ""|n|N)
+                [ $page -lt $total_pages ] && page=$((page + 1))
+                ;;
+            p|P|b|B)
+                [ $page -gt 1 ] && page=$((page - 1))
+                ;;
+            x|X|q|Q)
+                return
+                ;;
+            [1-4])
+                page=$help_choice
+                ;;
+        esac
+    done
+}
+
+# -----------------------------------------------------------------------------
+# show_mobile_guide - Step-by-step guide for Expo + Android
+# -----------------------------------------------------------------------------
+show_mobile_guide() {
+    clear
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "          ${YELLOW}📱 Guide Mobile — Expo + Android${NC}"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "Ce guide configure ton téléphone Android pour le dev en live."
+    echo -e "Suis les étapes dans l'ordre. Ce qui est déjà fait sera ignoré."
+    echo ""
+    echo -e "${YELLOW}Appuie sur Entrée pour commencer...${NC}"
+    read -r
+
+    # ── ÉTAPE 1 : EAS CLI ──────────────────────────────────────────────────
+    clear
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "  ${YELLOW}ÉTAPE 1/4${NC} — Installation de EAS CLI"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+    if command -v eas >/dev/null 2>&1; then
+        local eas_ver
+        eas_ver=$(eas --version 2>/dev/null | head -1)
+        echo -e "  ${GREEN}✅ EAS CLI déjà installé${NC} ($eas_ver)"
+    else
+        echo -e "  ${YELLOW}⚠️  EAS CLI non trouvé. Installation...${NC}"
+        echo ""
+        npm install -g eas-cli
+        if command -v eas >/dev/null 2>&1; then
+            echo -e "  ${GREEN}✅ EAS CLI installé${NC}"
+        else
+            echo -e "  ${RED}❌ Échec de l'installation. Vérifie que npm est dispo.${NC}"
+            echo ""
+            echo -e "${YELLOW}Appuie sur Entrée pour quitter le guide...${NC}"
+            read -r
+            return 1
+        fi
+    fi
+    echo ""
+    echo -e "${YELLOW}Appuie sur Entrée pour l'étape suivante...${NC}"
+    read -r
+
+    # ── ÉTAPE 2 : Connexion EAS ────────────────────────────────────────────
+    clear
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "  ${YELLOW}ÉTAPE 2/4${NC} — Connexion à ton compte Expo"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+    local eas_user
+    eas_user=$(eas whoami 2>/dev/null)
+    if [ -n "$eas_user" ] && [[ "$eas_user" != *"Not logged"* ]]; then
+        echo -e "  ${GREEN}✅ Connecté en tant que: $eas_user${NC}"
+    else
+        echo -e "  ${YELLOW}⚠️  Pas connecté à Expo. Lance la connexion...${NC}"
+        echo ""
+        eas login
+        eas_user=$(eas whoami 2>/dev/null)
+        if [ -n "$eas_user" ] && [[ "$eas_user" != *"Not logged"* ]]; then
+            echo -e "  ${GREEN}✅ Connecté en tant que: $eas_user${NC}"
+        else
+            echo -e "  ${RED}❌ Connexion échouée. Réessaie depuis le guide.${NC}"
+            echo ""
+            echo -e "${YELLOW}Appuie sur Entrée pour quitter...${NC}"
+            read -r
+            return 1
+        fi
+    fi
+    echo ""
+    echo -e "${YELLOW}Appuie sur Entrée pour l'étape suivante...${NC}"
+    read -r
+
+    # ── ÉTAPE 3 : Build APK ────────────────────────────────────────────────
+    clear
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "  ${YELLOW}ÉTAPE 3/4${NC} — Build de l'APK de développement"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "  ${BLUE}ℹ️  C'est la seule étape longue (10-15 min).${NC}"
+    echo -e "  ${BLUE}   Le build tourne sur les serveurs Expo, pas sur ce serveur.${NC}"
+    echo -e "  ${BLUE}   Tu fais ça UNE SEULE FOIS. Ensuite, l'APK reste sur ton tel.${NC}"
+    echo ""
+
+    local expo_projects=""
+    for d in /root/*/; do
+        [ -f "${d}package.json" ] || continue
+        if grep -q '"expo"' "${d}package.json" 2>/dev/null || grep -q '"expo-router"' "${d}package.json" 2>/dev/null; then
+            expo_projects="$expo_projects$(basename "$d")\n"
+        fi
+    done
+    expo_projects=$(printf "%b" "$expo_projects" | grep -v "^$")
+
+    if [ -z "$expo_projects" ]; then
+        echo -e "  ${YELLOW}⚠️  Aucun projet Expo trouvé dans /root/${NC}"
+        echo -e "  ${BLUE}   Déploie d'abord ton projet depuis le menu principal.${NC}"
+        echo ""
+        echo -e "${YELLOW}Appuie sur Entrée pour quitter...${NC}"
+        read -r
+        return 0
+    fi
+
+    local selected_project
+    selected_project=$(echo "$expo_projects" | ui_choose "Sélectionne ton projet Expo :")
+
+    if [ -z "$selected_project" ]; then
+        echo -e "${BLUE}Annulé${NC}"
+        return 0
+    fi
+
+    local project_dir="/root/$selected_project"
+    echo ""
+    echo -e "  ${GREEN}Projet: $selected_project${NC}"
+    echo ""
+    echo -e "  ${YELLOW}Lancer le build Android? (o/N):${NC} \c"
+    read -r build_confirm
+
+    if [[ "$build_confirm" =~ ^[oOyY]$ ]]; then
+        echo ""
+        echo -e "  ${BLUE}🔨 Build en cours... (ne ferme pas ce terminal)${NC}"
+        echo ""
+        cd "$project_dir" && eas build --profile development --platform android
+        echo ""
+        echo -e "  ${GREEN}✅ Build terminé ! Télécharge l'APK depuis le lien ci-dessus.${NC}"
+        echo -e "  ${BLUE}   Installe-le sur ton téléphone Android.${NC}"
+    else
+        echo -e "  ${BLUE}Build ignoré — si tu as déjà l'APK sur ton tel, c'est bon.${NC}"
+    fi
+    echo ""
+    echo -e "${YELLOW}Appuie sur Entrée pour l'étape suivante...${NC}"
+    read -r
+
+    # ── ÉTAPE 4 : Démarrer le serveur Metro ───────────────────────────────
+    clear
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "  ${YELLOW}ÉTAPE 4/4${NC} — Démarrer le serveur de développement"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "  ${BLUE}Démarrage de $selected_project avec tunnel Expo...${NC}"
+    echo ""
+    env_start "$selected_project"
+    echo ""
+
+    echo -e "  ${BLUE}⏳ Attente de l'URL du tunnel (15 sec)...${NC}"
+    sleep 15
+
+    local tunnel_url
+    tunnel_url=$(pm2 logs "$selected_project" --lines 50 --nostream 2>/dev/null \
+        | grep -oE 'https?://[a-zA-Z0-9._-]+\.exp\.direct[^ ]*' \
+        | tail -1)
+
+    echo ""
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "  ${GREEN}✅ Tout est prêt !${NC}"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+    if [ -n "$tunnel_url" ]; then
+        echo -e "  ${YELLOW}URL du tunnel :${NC}"
+        echo -e "  ${CYAN}$tunnel_url${NC}"
+        echo ""
+        echo -e "  ${BLUE}1. Ouvre l'APK dev build sur ton téléphone${NC}"
+        echo -e "  ${BLUE}2. Entre cette URL ou scanne le QR${NC}"
+        echo -e "  ${BLUE}3. Modifie ton code → l'app se recharge automatiquement 🎉${NC}"
+    else
+        echo -e "  ${YELLOW}URL pas encore visible — vérifie les logs :${NC}"
+        echo -e "  ${CYAN}pm2 logs $selected_project --lines 30${NC}"
+        echo ""
+        echo -e "  ${BLUE}1. Ouvre l'APK dev build sur ton téléphone${NC}"
+        echo -e "  ${BLUE}2. Entre l'URL exp:// depuis les logs${NC}"
+        echo -e "  ${BLUE}3. Modifie ton code → l'app se recharge automatiquement 🎉${NC}"
+    fi
+    echo ""
+    echo -e "${YELLOW}Appuie sur Entrée pour revenir au menu...${NC}"
+    read -r
 }

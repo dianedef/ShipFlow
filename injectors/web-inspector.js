@@ -5,18 +5,6 @@
 
     var IMGBB_API_KEY = 'e6b9a93df250481a8cd214fbfbb8e7ba';
 
-    // Load Eruda console for mobile debugging
-    (function loadEruda() {
-        if (window.eruda) return;
-        var script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/eruda';
-        script.onload = function() {
-            eruda.init();
-            console.log('ShipFlow: Eruda console loaded');
-        };
-        document.head.appendChild(script);
-    })();
-
     function loadHtml2Canvas() {
         return new Promise(function(resolve, reject) {
             if (window.html2canvas) return resolve(window.html2canvas);

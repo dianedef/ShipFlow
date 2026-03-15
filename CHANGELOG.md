@@ -1,5 +1,27 @@
 # ShipFlow Changelog
 
+## [Unreleased] — 2026-03-13
+
+### Added
+- `env_check_git_safety()` — checks for uncommitted changes, untracked files, and unpushed commits before removing an environment
+- `env_cleanup_external_data()` — removes orphaned `shipflow_data/projects/<name>/`, cleans `PROJECTS.md`, warns about stale Caddy routes
+- Per-project dev tools preferences via `.shipflow-tools.conf` (inspector and Eruda independently configurable)
+- `injectors/eruda-console.js` — Eruda console extracted into standalone file
+- New functions: `get_tools_pref()`, `set_tools_pref()`, `inject_tool_script()`, `remove_tool_script()`, `init_dev_tools()`, `set_tool_state()`
+- Config defaults `SHIPFLOW_INSPECTOR_DEFAULT` / `SHIPFLOW_ERUDA_DEFAULT` in `config.sh`
+- Dev Tools submenu in Advanced menu (option 4) — shows per-project state, toggle inspector/Eruda independently
+
+### Changed
+- `env_remove()` now checks git safety before deletion and prompts user; accepts `--force` to skip
+- `env_remove()` cleans up external ShipFlow data and warns about Caddy routes
+- `init_web_inspector()` replaced by `init_dev_tools()` (backwards-compatible alias kept)
+- `toggle_web_inspector()` now toggles both tools and persists preferences
+- `env_start()` respects per-project dev tools preferences instead of always injecting
+- Inspector and Eruda are now separate JS files instead of bundled together
+
+### Removed
+- Eruda loader code from `injectors/web-inspector.js` (moved to dedicated file)
+
 ## [2026-03-07] - Disk Cleanup & Dev Command Fixes
 
 ### Changed
