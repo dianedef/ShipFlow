@@ -1,9 +1,13 @@
 # ShipFlow Changelog
 
-## [2026-03-21] - French Accent Enforcement in Content Skills
+## [2026-03-21] - Multi-user Install & French Accent Enforcement
 
 ### Changed
-- 7 content-creation skills now enforce mandatory French accent verification (é, è, ê, à, â, ù, û, ô, î, ï, ç, œ, æ) on all generated French content: audit-copy, audit-translate, enrich, docs, changelog, audit-seo, market-study
+- `install.sh`: removed silent `exec sudo` auto-elevation — now shows a loud red banner telling users to run as root
+- `install.sh`: per-user setup (statusline, skills, aliases, shipflow_data) now runs for ALL users in `/home/`, not just root
+- `install.sh`: fixed `local` keyword used outside functions (bash bug)
+- `install.sh`: updated branding DevServer → ShipFlow
+- 7 content-creation skills now enforce mandatory French accent verification on all generated French content
 
 ## [2026-03-07] - Disk Cleanup & Dev Command Fixes
 

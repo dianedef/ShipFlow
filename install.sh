@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script d'installation des dépendances pour DevServer
-# À exécuter une seule fois avant d'utiliser le menu
+# Script d'installation ShipFlow — DOIT être lancé en root (sudo ./install.sh)
+# Installe les paquets système puis configure TOUS les utilisateurs
 
 # Colors
 RED='\033[0;31m'
@@ -12,7 +12,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC}          ${YELLOW}DevServer Installation${NC}            ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}          ${YELLOW}ShipFlow Installation${NC}             ${CYAN}║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -33,16 +33,26 @@ warning() {
     echo -e "${YELLOW}⚠️${NC} $1"
 }
 
-# Auto-elevation to root if needed
+# Root check — système packages need root, no silent elevation
 if [ "$EUID" -ne 0 ]; then
-    if command -v sudo >/dev/null 2>&1; then
-        info "Elevation en root..."
-        exec sudo "$0" "$@"
-    else
-        error "Ce script doit etre execute en tant que root"
-        exit 1
-    fi
+    echo ""
+    echo -e "${RED}╔══════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${RED}║                                                          ║${NC}"
+    echo -e "${RED}║   ⛔  CE SCRIPT DOIT ÊTRE LANCÉ EN ROOT !  ⛔           ║${NC}"
+    echo -e "${RED}║                                                          ║${NC}"
+    echo -e "${RED}║   L'installation des paquets système (Node.js, PM2,      ║${NC}"
+    echo -e "${RED}║   Flox, Caddy, etc.) nécessite les droits root.          ║${NC}"
+    echo -e "${RED}║                                                          ║${NC}"
+    echo -e "${RED}║   Relancez avec :                                        ║${NC}"
+    echo -e "${RED}║     ${YELLOW}sudo ./install.sh${RED}                                    ║${NC}"
+    echo -e "${RED}║                                                          ║${NC}"
+    echo -e "${RED}╚══════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    exit 1
 fi
+
+# Remember who invoked sudo so we configure their account too
+INVOKING_USER="${SUDO_USER:-}"
 
 echo -e "${BLUE}🔍 Vérification des dépendances...${NC}"
 echo ""
@@ -169,7 +179,7 @@ if command -v gh >/dev/null 2>&1; then
 else
     info "Installation de GitHub CLI..."
     # Try apt repo first, fallback to direct .deb download
-    local gh_installed=false
+    gh_installed=false
     if type -p curl >/dev/null; then
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
         chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
@@ -179,9 +189,9 @@ else
     # Fallback: direct .deb download (handles GPG key issues)
     if [ "$gh_installed" != "true" ]; then
         info "Fallback: telechargement direct du .deb..."
-        local gh_arch="amd64"
+        gh_arch="amd64"
         [ "$(uname -m)" = "aarch64" ] && gh_arch="arm64"
-        local gh_version
+        gh_version=""
         gh_version=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | jq -r '.tag_name' 2>/dev/null || echo "v2.67.0")
         curl -fsSL "https://github.com/cli/cli/releases/download/${gh_version}/gh_${gh_version#v}_linux_${gh_arch}.deb" -o /tmp/gh.deb 2>/dev/null
         dpkg -i /tmp/gh.deb 2>/dev/null || true
@@ -241,45 +251,102 @@ else
     success "Répertoire de configuration existe: $DOKPLOY_DIR"
 fi
 
-# Claude Code setup
+# ──────────────────────────────────────────────────────────────
+# Per-user setup: Claude Code, skills, aliases, data
+# Runs for root + ALL regular users in /home/
+# ──────────────────────────────────────────────────────────────
+
 SHIPFLOW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-mkdir -p "$HOME/.claude"
 
 # StatusLine — pointer vers le script ShipFlow
-if [ ! -f "$HOME/.claude/settings.json" ]; then
-    echo '{}' > "$HOME/.claude/settings.json"
-fi
-if command -v jq >/dev/null 2>&1; then
-    if ! jq -e '.statusLine' "$HOME/.claude/settings.json" &>/dev/null; then
+configure_statusline() {
+    local target_home="$1"
+    local settings_file="$target_home/.claude/settings.json"
+    mkdir -p "$target_home/.claude"
+    if [ ! -f "$settings_file" ]; then
+        echo '{}' > "$settings_file"
+    fi
+    if command -v jq >/dev/null 2>&1; then
         jq --arg cmd "bash $SHIPFLOW_DIR/.claude/statusline-starship.sh" \
             '.statusLine = {"type": "command", "command": $cmd}' \
-            "$HOME/.claude/settings.json" > "$HOME/.claude/settings.json.tmp" \
-            && mv "$HOME/.claude/settings.json.tmp" "$HOME/.claude/settings.json"
-        echo -e "  ${GREEN}✅ Claude Code statusLine configured${NC}"
+            "$settings_file" > "${settings_file}.tmp" \
+            && mv "${settings_file}.tmp" "$settings_file"
     fi
-fi
+}
 
-# Claude Code skills — symlinks individuels vers ShipFlow/.claude/skills/
-if [ -d "$SHIPFLOW_DIR/.claude/skills" ]; then
-    mkdir -p "$HOME/.claude/skills"
-    for skill_dir in "$SHIPFLOW_DIR/.claude/skills"/*/; do
-        skill_name=$(basename "$skill_dir")
-        if [ ! -e "$HOME/.claude/skills/$skill_name" ]; then
-            ln -s "$skill_dir" "$HOME/.claude/skills/$skill_name"
-            echo -e "  ${GREEN}✅ Skill linked:${NC} $skill_name"
-        fi
-    done
-fi
+# Configure skills symlinks for a user
+configure_skills() {
+    local target_home="$1"
+    if [ -d "$SHIPFLOW_DIR/.claude/skills" ]; then
+        mkdir -p "$target_home/.claude/skills"
+        for skill_dir in "$SHIPFLOW_DIR/.claude/skills"/*/; do
+            local skill_name
+            skill_name=$(basename "$skill_dir")
+            if [ ! -e "$target_home/.claude/skills/$skill_name" ]; then
+                ln -s "$skill_dir" "$target_home/.claude/skills/$skill_name"
+            fi
+        done
+    fi
+}
 
-# shipflow_data — créer le dossier de données utilisateur si absent
-SHIPFLOW_DATA="${SHIPFLOW_DATA_DIR:-$HOME/shipflow_data}"
-if [ ! -d "$SHIPFLOW_DATA" ]; then
-    mkdir -p "$SHIPFLOW_DATA"
-    echo "# Tasks" > "$SHIPFLOW_DATA/TASKS.md"
-    echo "# Audit Log" > "$SHIPFLOW_DATA/AUDIT_LOG.md"
-    echo "# Projects" > "$SHIPFLOW_DATA/PROJECTS.md"
-    echo -e "  ${GREEN}✅ Created:${NC} $SHIPFLOW_DATA"
-fi
+# Configure aliases in bashrc
+configure_aliases() {
+    local bashrc="$1/.bashrc"
+    [ -f "$bashrc" ] || return 0
+    if ! grep -q "alias shipflow=" "$bashrc" 2>/dev/null; then
+        cat >> "$bashrc" << ALIASES
+
+# ShipFlow
+alias shipflow='$SHIPFLOW_DIR/shipflow.sh'
+alias sf='$SHIPFLOW_DIR/shipflow.sh'
+ALIASES
+    fi
+}
+
+# Create shipflow_data for a user
+configure_data() {
+    local data_dir="$1/shipflow_data"
+    if [ ! -d "$data_dir" ]; then
+        mkdir -p "$data_dir"
+        echo "# Tasks" > "$data_dir/TASKS.md"
+        echo "# Audit Log" > "$data_dir/AUDIT_LOG.md"
+        echo "# Projects" > "$data_dir/PROJECTS.md"
+    fi
+}
+
+# Full per-user setup
+setup_user() {
+    local user_home="$1"
+    local username="$2"
+
+    configure_statusline "$user_home"
+    configure_skills "$user_home"
+    configure_aliases "$user_home"
+    configure_data "$user_home"
+
+    # Fix ownership — everything we created must belong to the user
+    if [ "$username" != "root" ]; then
+        chown -R "$username:$username" "$user_home/.claude" 2>/dev/null || true
+        chown -R "$username:$username" "$user_home/shipflow_data" 2>/dev/null || true
+    fi
+
+    echo -e "  ${GREEN}✅ Utilisateur configuré :${NC} $username"
+}
+
+echo ""
+echo -e "${BLUE}👥 Configuration par utilisateur...${NC}"
+
+# Configure root
+setup_user "$HOME" "root"
+
+# Configure ALL regular users in /home/
+for user_home in /home/*/; do
+    [ -d "$user_home" ] || continue
+    username=$(basename "$user_home")
+    # Skip if not a real user (no passwd entry)
+    id "$username" &>/dev/null || continue
+    setup_user "$user_home" "$username"
+done
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
@@ -292,9 +359,8 @@ echo ""
 echo -e "1. ${YELLOW}Authentification GitHub${NC} (si pas déjà fait) :"
 echo -e "   ${CYAN}gh auth login${NC}"
 echo ""
-echo -e "2. ${YELLOW}Lancer le menu DevServer${NC} :"
-echo -e "   ${CYAN}cd /root/dokploy/cli${NC}"
-echo -e "   ${CYAN}./shipflow.sh${NC}"
+echo -e "2. ${YELLOW}Lancer ShipFlow${NC} :"
+echo -e "   ${CYAN}shipflow${NC}  ou  ${CYAN}sf${NC}"
 echo ""
 
 # Résumé des installations
@@ -311,18 +377,4 @@ echo -e "  • jq: $(command -v jq >/dev/null 2>&1 && echo '✅ (2-5x faster JSO
 echo -e "  • fuser: $(command -v fuser >/dev/null 2>&1 && echo '✅ (port cleanup)' || echo '❌')"
 echo ""
 
-# Add aliases to bashrc
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if ! grep -q "alias shipflow=" "$HOME/.bashrc" 2>/dev/null; then
-    cat >> "$HOME/.bashrc" << ALIASES
-
-# ShipFlow
-alias shipflow='$SCRIPT_DIR/shipflow.sh'
-alias sf='$SCRIPT_DIR/shipflow.sh'
-ALIASES
-    success "Aliases ajoutés: shipflow, sf"
-else
-    success "Aliases déjà configurés"
-fi
-
-success "Vous pouvez maintenant utiliser le menu DevServer !"
+success "Installation complète pour tous les utilisateurs !"
