@@ -33,11 +33,15 @@ warning() {
     echo -e "${YELLOW}⚠️${NC} $1"
 }
 
-# Vérifier si on est root
-if [ "$EUID" -ne 0 ]; then 
-    error "Ce script doit être exécuté en tant que root"
-    echo -e "${YELLOW}Utilisez: sudo ./install.sh${NC}"
-    exit 1
+# Auto-elevation to root if needed
+if [ "$EUID" -ne 0 ]; then
+    if command -v sudo >/dev/null 2>&1; then
+        info "Elevation en root..."
+        exec sudo "$0" "$@"
+    else
+        error "Ce script doit etre execute en tant que root"
+        exit 1
+    fi
 fi
 
 echo -e "${BLUE}🔍 Vérification des dépendances...${NC}"
@@ -68,8 +72,10 @@ if command -v pm2 >/dev/null 2>&1; then
     success "PM2 déjà installé: $PM2_VERSION"
 else
     info "Installation de PM2..."
+    npm config set prefix /usr/local
     npm install -g pm2
-    
+    hash -r 2>/dev/null
+
     if command -v pm2 >/dev/null 2>&1; then
         success "PM2 installé: $(pm2 --version)"
     else
@@ -162,12 +168,25 @@ if command -v gh >/dev/null 2>&1; then
     success "GitHub CLI déjà installé: $GH_VERSION"
 else
     info "Installation de GitHub CLI..."
-    type -p curl >/dev/null || apt install curl -y
-    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-    apt update
-    apt install gh -y
+    # Try apt repo first, fallback to direct .deb download
+    local gh_installed=false
+    if type -p curl >/dev/null; then
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
+        chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        apt-get update -qq 2>/dev/null && apt-get install -y gh 2>/dev/null && gh_installed=true
+    fi
+    # Fallback: direct .deb download (handles GPG key issues)
+    if [ "$gh_installed" != "true" ]; then
+        info "Fallback: telechargement direct du .deb..."
+        local gh_arch="amd64"
+        [ "$(uname -m)" = "aarch64" ] && gh_arch="arm64"
+        local gh_version
+        gh_version=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | jq -r '.tag_name' 2>/dev/null || echo "v2.67.0")
+        curl -fsSL "https://github.com/cli/cli/releases/download/${gh_version}/gh_${gh_version#v}_linux_${gh_arch}.deb" -o /tmp/gh.deb 2>/dev/null
+        dpkg -i /tmp/gh.deb 2>/dev/null || true
+        rm -f /tmp/gh.deb
+    fi
     
     if command -v gh >/dev/null 2>&1; then
         success "GitHub CLI installé: $(gh --version | head -n1)"
@@ -291,5 +310,19 @@ echo -e "  • Git: $(command -v git >/dev/null 2>&1 && echo '✅' || echo '❌'
 echo -e "  • jq: $(command -v jq >/dev/null 2>&1 && echo '✅ (2-5x faster JSON)' || echo '❌')"
 echo -e "  • fuser: $(command -v fuser >/dev/null 2>&1 && echo '✅ (port cleanup)' || echo '❌')"
 echo ""
+
+# Add aliases to bashrc
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if ! grep -q "alias shipflow=" "$HOME/.bashrc" 2>/dev/null; then
+    cat >> "$HOME/.bashrc" << ALIASES
+
+# ShipFlow
+alias shipflow='$SCRIPT_DIR/shipflow.sh'
+alias sf='$SCRIPT_DIR/shipflow.sh'
+ALIASES
+    success "Aliases ajoutés: shipflow, sf"
+else
+    success "Aliases déjà configurés"
+fi
 
 success "Vous pouvez maintenant utiliser le menu DevServer !"
