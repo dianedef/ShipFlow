@@ -1,5 +1,19 @@
 # ShipFlow Changelog
 
+## [2026-03-22] - Skill Architecture Overhaul & Copywriting Audit
+
+### Added
+- `shipflow-start` skill — begin a task: load context, mark 🔄 in-progress in TASKS.md, plan
+- `shipflow-end` skill — finish a task: summarize, mark ✅ done, update CHANGELOG — no commit/push
+- `shipflow-audit-copywriting` skill — marketing & conversion audit from persona to funnel (distinct from rédactionnel audit-copy)
+- Copywriting audit persists `docs/copywriting/persona.md`, `parcours-client.md`, `strategie.md` as shared reference for other skills
+
+### Changed
+- `shipflow-ship` refactored: now includes end-style recap (summary + tasks + changelog) before commit+push
+- `install.sh`: tools check is verbose on first run only (marker `~/.shipflow_setup_done`), silent on daily use
+- `check_prerequisites()`: shows 9 tools with versions and ✅/❌/⚠️ status
+- Advanced menu: new `t) Tools Status` option for on-demand check
+
 ## [2026-03-21] - Tools Status Feedback & First-Run Check
 
 ### Changed
