@@ -65,14 +65,17 @@ For each visual opportunity (highest priority first), create an SVG file.
 - No fixed width/height attributes — use viewBox only for responsiveness
 - Font: `system-ui, -apple-system, sans-serif` (no external fonts)
 
-**Colors:**
-- Use a consistent, professional palette based on Tailwind colors
-- Green for positive/good (`#22c55e`, `#16a34a`, `#dcfce7`)
-- Red for negative/bad (`#ef4444`, `#dc2626`, `#fef2f2`)
-- Yellow/orange for warning/medium (`#eab308`, `#f97316`)
-- Blue/indigo for primary/neutral (`#6366f1`, `#2563eb`, `#eef2ff`)
-- Purple for special/highlight (`#7c3aed`, `#8b5cf6`, `#f5f3ff`)
-- Gray for text and borders (`#1e293b`, `#64748b`, `#94a3b8`, `#e2e8f0`)
+**Colors — branding first:**
+- **Always check for a branding file first** : chercher `BRANDING.md`, `branding.md`, `BRAND.md`, `GUIDELINES.md`, `docs/branding*`, `docs/design*`, ou des variables CSS/tokens dans `tailwind.config.*`, `src/styles/`, `src/assets/`
+- Si un fichier branding existe, **extraire la palette du projet** (couleurs primaires, secondaires, accent, sémantiques) et l'utiliser en priorité
+- Si aucun branding n'est trouvé, utiliser la palette Tailwind par défaut :
+  - Green for positive/good (`#22c55e`, `#16a34a`, `#dcfce7`)
+  - Red for negative/bad (`#ef4444`, `#dc2626`, `#fef2f2`)
+  - Yellow/orange for warning/medium (`#eab308`, `#f97316`)
+  - Blue/indigo for primary/neutral (`#6366f1`, `#2563eb`, `#eef2ff`)
+  - Purple for special/highlight (`#7c3aed`, `#8b5cf6`, `#f5f3ff`)
+  - Gray for text and borders (`#1e293b`, `#64748b`, `#94a3b8`, `#e2e8f0`)
+- Les couleurs sémantiques (vert=bon, rouge=mauvais) restent universelles même avec un branding custom
 
 **Typography:**
 - Title: 20-22px, font-weight 700, fill `#1e293b`
