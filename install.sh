@@ -277,9 +277,9 @@ configure_statusline() {
 # Configure skills symlinks for a user
 configure_skills() {
     local target_home="$1"
-    if [ -d "$SHIPFLOW_DIR/.claude/skills" ]; then
+    if [ -d "$SHIPFLOW_DIR/skills" ]; then
         mkdir -p "$target_home/.claude/skills"
-        for skill_dir in "$SHIPFLOW_DIR/.claude/skills"/*/; do
+        for skill_dir in "$SHIPFLOW_DIR/skills"/*/; do
             local skill_name
             skill_name=$(basename "$skill_dir")
             if [ ! -e "$target_home/.claude/skills/$skill_name" ]; then
