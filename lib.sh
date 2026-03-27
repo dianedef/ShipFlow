@@ -1328,6 +1328,105 @@ show_tools_status() {
 }
 
 # -----------------------------------------------------------------------------
+# install_sdk_menu - Interactive menu to install optional development SDKs
+#
+# Description:
+#   Allows manual installation of global SDKs that are NOT required by ShipFlow
+#   but useful for development (Flutter/Dart, etc.).
+#   Requires sudo for system-wide installation.
+# -----------------------------------------------------------------------------
+install_sdk_menu() {
+    local flutter_install_dir="/opt/flutter"
+    local flutter_profile="/etc/profile.d/flutter.sh"
+
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "              ${YELLOW}Install SDK${NC}"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}"
+    echo ""
+
+    # Flutter status
+    local flutter_status
+    if command -v flutter >/dev/null 2>&1; then
+        local flutter_ver
+        flutter_ver=$(flutter --version 2>&1 | head -n1)
+        flutter_status="${GREEN}installed${NC} — $flutter_ver"
+    else
+        flutter_status="${YELLOW}not installed${NC}"
+    fi
+
+    echo -e "  ${CYAN}1)${NC} Flutter + Dart  [$flutter_status]"
+    echo -e "  ${CYAN}0)${NC} Back"
+    echo ""
+    echo -e "${YELLOW}Your choice:${NC} \c"
+    read -r sdk_choice
+
+    case $sdk_choice in
+        1)
+            if command -v flutter >/dev/null 2>&1; then
+                echo -e "${GREEN}Flutter is already installed.${NC}"
+                echo -e "  Version: $(flutter --version 2>&1 | head -n1)"
+                echo -e "  Dart:    $(dart --version 2>&1)"
+                echo ""
+                echo -e "${BLUE}To update: flutter upgrade${NC}"
+                return 0
+            fi
+
+            # Requires root
+            if [ "$EUID" -ne 0 ]; then
+                echo -e "${RED}Installation requires root privileges.${NC}"
+                echo -e "${YELLOW}Run: ${CYAN}sudo sf${YELLOW} then Advanced > Install SDK${NC}"
+                return 1
+            fi
+
+            echo -e "${BLUE}Installing Flutter SDK to $flutter_install_dir...${NC}"
+            echo ""
+
+            # Migration: move existing per-user SDK if present
+            local old_sdk="$HOME/.flutter-sdk"
+            if [ -d "$old_sdk" ] && [ ! -d "$flutter_install_dir" ]; then
+                echo -e "${YELLOW}Found existing SDK at $old_sdk${NC}"
+                if ui_confirm "Migrate to $flutter_install_dir?"; then
+                    mv "$old_sdk" "$flutter_install_dir"
+                    chown -R root:root "$flutter_install_dir"
+                    chmod -R a+rX "$flutter_install_dir"
+                    echo -e "${GREEN}SDK migrated.${NC}"
+                fi
+            fi
+
+            # Fresh install if not yet present
+            if [ ! -d "$flutter_install_dir" ]; then
+                git clone -b stable https://github.com/flutter/flutter.git "$flutter_install_dir"
+            fi
+
+            # Configure system-wide PATH
+            echo "export PATH=\"$flutter_install_dir/bin:\$PATH\"" > "$flutter_profile"
+            export PATH="$flutter_install_dir/bin:$PATH"
+
+            if command -v flutter >/dev/null 2>&1; then
+                # Disable telemetry
+                flutter config --no-analytics >/dev/null 2>&1 || true
+                dart --disable-analytics >/dev/null 2>&1 || true
+                # Pre-cache web tools (main use case on server)
+                echo -e "${BLUE}Running flutter precache --web...${NC}"
+                flutter precache --web >/dev/null 2>&1 || true
+                echo ""
+                echo -e "${GREEN}Flutter installed successfully!${NC}"
+                echo -e "  $(flutter --version 2>&1 | head -n1)"
+                echo -e "  $(dart --version 2>&1)"
+                echo ""
+                echo -e "${BLUE}All users will have flutter/dart in PATH after next login.${NC}"
+                echo -e "${BLUE}For current session: ${CYAN}source $flutter_profile${NC}"
+            else
+                echo -e "${RED}Flutter installation failed.${NC}"
+                echo -e "${YELLOW}Manual install: git clone -b stable https://github.com/flutter/flutter.git $flutter_install_dir${NC}"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+}
+
+# -----------------------------------------------------------------------------
 # validate_project_path - Validate project directory path for security
 #
 # Description:
@@ -2456,7 +2555,12 @@ init_flox_env() {
             flox install dart
             ;;
         flutter)
-            echo -e "${BLUE}🦋 Projet Flutter détecté — utilisation du SDK Flutter système${NC}"
+            if command -v flutter >/dev/null 2>&1; then
+                echo -e "${BLUE}🦋 Projet Flutter détecté — SDK Flutter disponible${NC}"
+            else
+                echo -e "${YELLOW}⚠️ Projet Flutter détecté mais SDK non trouvé dans le PATH${NC}"
+                echo -e "${YELLOW}   Installez via : sf → Advanced → Install SDK${NC}"
+            fi
             ;;
         generic)
             echo -e "${YELLOW}📄 Projet générique - environnement Flox de base${NC}"
@@ -2666,7 +2770,7 @@ detect_dev_command() {
         elif [ -x "./build.sh" ]; then
             echo "./build.sh --serve"
         elif [ -d "web" ]; then
-            echo "export PATH=/home/claude/.flutter-sdk/bin:\$PATH && flutter config --enable-web >/dev/null 2>&1 || true && flutter pub get && flutter run -d web-server --web-hostname 0.0.0.0 --web-port \$PORT"
+            echo "flutter config --enable-web >/dev/null 2>&1 || true && flutter pub get && flutter run -d web-server --web-hostname 0.0.0.0 --web-port \$PORT"
         else
             echo "echo 'Flutter project detected but no web target or pm2 entrypoint found' && exit 1"
         fi
@@ -4946,6 +5050,7 @@ action_adv_help() { show_help; }
 action_cleanup() { disk_cleanup_menu; refresh_menu_status_cache_sync >/dev/null 2>&1 || true; }
 action_updates() { updates_menu; refresh_menu_status_cache_sync >/dev/null 2>&1 || true; }
 action_tools() { show_tools_status; }
+action_install_sdk() { install_sdk_menu; }
 
 # ============================================================================
 # MENU ITEM DEFINITIONS (shared between gum and bash menus)
@@ -4982,6 +5087,7 @@ ADVANCED_MENU_ITEMS=(
     "c|🧹 CleanUp Space - Free space (light/aggressive)|action_cleanup"
     "u|⬆️  Updates - Check & update packages|action_updates"
     "t|🔧 Tools Status - Voir les outils installés|action_tools"
+    "f|📦 Install SDK - Flutter, Dart...|action_install_sdk"
     "x|← Back to Main Menu|__EXIT__"
 )
 
