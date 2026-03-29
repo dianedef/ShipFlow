@@ -1,5 +1,19 @@
 # ShipFlow Changelog
 
+## [2026-03-29] - Design audit upgrade, Python env robustness
+
+### Added
+- `sf-audit-design`: NN/g 10 usability heuristics as new audit category (section 7)
+- `sf-audit-design`: WCAG 2.2 criteria — Focus Appearance (2.4.11), Target Size (2.5.8), Dragging Movements (2.5.7), Consistent Help (3.2.6)
+- `sf-audit-design`: "Why it matters" — each finding now cites the UX principle or standard behind it
+- `sf-audit-design`: Quick Wins section in all 3 report formats (page, project, global) — max 5 high-impact/low-effort fixes
+- `python_runtime_command()` — detects best Python runtime (venv, .shipflow-pydeps, system) for project
+
+### Changed
+- Python env setup: resilient multi-strategy install (venv → .shipflow-pydeps → system pip) with clear feedback
+- Doppler scope check simplified — direct grep instead of directory walk loop
+- Python Flox packages: removed `python3Packages.pip` (pip handled by venv/ensurepip)
+
 ## [2026-03-23] - Skills overhaul: absorb OpenSpec/BMAD, new workflow skills, business context
 
 ### Added

@@ -2487,6 +2487,22 @@ detect_project_type() {
     fi
 }
 
+python_runtime_command() {
+    local project_dir=$1
+
+    cd "$project_dir" || return 1
+
+    if [ -d ".shipflow-pydeps" ]; then
+        echo "PYTHONPATH=./.shipflow-pydeps python3"
+    elif [ -x ".venv/bin/python" ] && ./.venv/bin/python -m pip --version >/dev/null 2>&1; then
+        echo "./.venv/bin/python"
+    elif [ -x "venv/bin/python" ] && ./venv/bin/python -m pip --version >/dev/null 2>&1; then
+        echo "./venv/bin/python"
+    else
+        echo "python3"
+    fi
+}
+
 # Create or init Flox environment for project
 init_flox_env() {
     local project_dir=$1
@@ -2540,7 +2556,9 @@ init_flox_env() {
             ;;
         python)
             echo -e "${BLUE}🐍 Installation de Python et pip...${NC}"
-            flox install python3 python3Packages.pip
+            if ! flox install $SHIPFLOW_FLOX_PYTHON_PACKAGES 2>&1 | tail -1; then
+                warning "Impossible d'installer les paquets Python Flox configurés"
+            fi
             ;;
         rust)
             echo -e "${BLUE}🦀 Installation de Rust...${NC}"
@@ -2589,18 +2607,55 @@ init_flox_env() {
     elif [ "$lang" = "python" ]; then
         echo -e "${BLUE}🐍 Configuration de l'environnement Python...${NC}"
         cd "$project_dir"
-        # Create venv if it doesn't exist
-        if [ ! -d "venv" ]; then
-            echo -e "${BLUE}   Creating Python venv...${NC}"
-            flox activate -- python -m venv venv 2>&1 || true
+        local py_runtime_cmd="python3"
+        local pydeps_dir=".shipflow-pydeps"
+        local installed_ok=false
+
+        if ! flox activate -- python3 --version >/dev/null 2>&1; then
+            warning "Python3 n'est pas disponible dans Flox après l'initialisation"
         fi
+
+        # Prefer an isolated venv when the host Python supports it.
+        if [ ! -x ".venv/bin/python" ] && [ ! -x "venv/bin/python" ]; then
+            echo -e "${BLUE}   Creating Python venv...${NC}"
+            flox activate -- python3 -m venv .venv >/dev/null 2>&1 || true
+        fi
+
+        if [ -x ".venv/bin/python" ]; then
+            py_runtime_cmd="./.venv/bin/python"
+        elif [ -x "venv/bin/python" ]; then
+            py_runtime_cmd="./venv/bin/python"
+        fi
+
         # Install requirements if they exist
         if [ -f "requirements.txt" ]; then
             echo -e "${BLUE}   Installing requirements.txt...${NC}"
-            flox activate -- ./venv/bin/pip install -r requirements.txt -q 2>&1 || true
+            if [ "$py_runtime_cmd" = "./.venv/bin/python" ] || [ "$py_runtime_cmd" = "./venv/bin/python" ]; then
+                "$py_runtime_cmd" -m ensurepip --upgrade >/dev/null 2>&1 || true
+                "$py_runtime_cmd" -m pip install -r requirements.txt -q 2>&1 && installed_ok=true || true
+            fi
+
+            if [ "$installed_ok" != "true" ]; then
+                mkdir -p "$pydeps_dir"
+                flox activate -- python3 -m pip install --break-system-packages --target "$pydeps_dir" -r requirements.txt -q 2>&1 && installed_ok=true || true
+            fi
         elif [ -f "pyproject.toml" ]; then
             echo -e "${BLUE}   Installing from pyproject.toml...${NC}"
-            flox activate -- ./venv/bin/pip install -e . -q 2>&1 || true
+            if [ "$py_runtime_cmd" = "./.venv/bin/python" ] || [ "$py_runtime_cmd" = "./venv/bin/python" ]; then
+                "$py_runtime_cmd" -m ensurepip --upgrade >/dev/null 2>&1 || true
+                "$py_runtime_cmd" -m pip install -e . -q 2>&1 && installed_ok=true || true
+            fi
+
+            if [ "$installed_ok" != "true" ]; then
+                mkdir -p "$pydeps_dir"
+                flox activate -- python3 -m pip install --break-system-packages --target "$pydeps_dir" . -q 2>&1 && installed_ok=true || true
+            fi
+        fi
+
+        if [ "$installed_ok" = "true" ]; then
+            echo -e "${GREEN}✅ Dépendances Python installées${NC}"
+        else
+            warning "Les dépendances Python n'ont pas pu être installées automatiquement"
         fi
         echo -e "${GREEN}✅ Environnement Python configuré${NC}"
     fi
@@ -2737,11 +2792,8 @@ detect_dev_command() {
             echo "$pm_cmd start"
         fi
     elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
-        # Use venv python if it exists, otherwise fallback to system python
-        local py_cmd="python"
-        if [ -d "venv/bin" ]; then
-            py_cmd="./venv/bin/python"
-        fi
+        local py_cmd=""
+        py_cmd=$(python_runtime_command "$project_dir")
         if [ -f "manage.py" ]; then
             echo "$py_cmd manage.py runserver 0.0.0.0:\$PORT"
         elif [ -f "app.py" ]; then
@@ -2792,19 +2844,9 @@ project_has_doppler_manifest() {
 project_has_doppler_scope() {
     local project_dir=$1
     local doppler_state_file="$HOME/.doppler/.doppler.yaml"
-    local current_dir=""
 
     [ -f "$doppler_state_file" ] || return 1
-
-    current_dir="$project_dir"
-    while [ -n "$current_dir" ] && [ "$current_dir" != "/" ]; do
-        if grep -Fq "    $current_dir:" "$doppler_state_file"; then
-            return 0
-        fi
-        current_dir=$(dirname "$current_dir")
-    done
-
-    return 1
+    grep -Fq "    $project_dir:" "$doppler_state_file"
 }
 
 should_enable_doppler() {

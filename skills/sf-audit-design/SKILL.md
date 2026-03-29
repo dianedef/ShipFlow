@@ -1,6 +1,6 @@
 ---
 name: sf-audit-design
-description: Professional UI/UX design review — single page (with argument) or full project audit (no argument)
+description: Professional UI/UX design audit (NN/g heuristics, WCAG 2.2, visual hierarchy) — single page, full project, or global
 disable-model-invocation: true
 argument-hint: [file-path | "global"] (omit for full project)
 ---
@@ -72,9 +72,12 @@ Audit ALL UI projects in the workspace for design, UX, and accessibility issues.
    CROSS-PROJECT PATTERNS
      [Systemic design issues in 2+ projects]
    ALL ISSUES BY SEVERITY
-     🔴 [project] file:line — description
-     🟠 [project] file:line — description
-     🟡 [project] file:line — description
+     🔴 [project] file:line — description — Why: [principle]
+     🟠 [project] file:line — description — Why: [principle]
+     🟡 [project] file:line — description — Why: [principle]
+   QUICK WINS ACROSS PROJECTS
+     ⚡ [project] file:line — description — Why: [principle]
+     ... (max 10, ordered by impact)
    Total: X critical, Y high, Z medium across N projects
    ═══════════════════════════════════════
    ```
@@ -133,16 +136,32 @@ Score each category **A/B/C/D** (A = excellent, D = critical issues). Be strict 
 - [ ] Spacing uses design system tokens, not arbitrary values
 - [ ] States are covered: empty, loading, error, populated
 
-#### 6. Accessibility
+#### 6. Accessibility (WCAG 2.2)
 - [ ] All images have meaningful alt text (or alt="" for decorative)
 - [ ] Form inputs have visible labels (not just placeholders)
 - [ ] Keyboard navigation works (tab order, focus visible)
 - [ ] ARIA roles where needed (modals, menus, tabs)
 - [ ] Skip navigation link present if applicable
 - [ ] Animations respect `prefers-reduced-motion`
+- [ ] **Focus Appearance (2.4.11)**: Focus indicator is at least 2px solid, contrasts 3:1 against adjacent colors — no `outline: none` without replacement
+- [ ] **Target Size Minimum (2.5.8)**: All interactive targets are at least 24×24px CSS (44×44px recommended on touch). Inline text links exempt
+- [ ] **Dragging Movements (2.5.7)**: Any drag-to-operate control also has a non-dragging alternative (buttons, click-to-place)
+- [ ] **Consistent Help (3.2.6)**: Help/support mechanisms (contact, FAQ, chat) appear in the same relative position across pages
 - [ ] **Click target propagation**: Containers with a single action child (icon button, hamburger menu, link) should make the whole container clickable — add `onClick`/`role="button"`/`tabIndex={0}`/`onKeyDown` to parent, `cursor-pointer` + hover state for feedback, `e.stopPropagation()` on secondary actions. Skip if: multiple competing actions, destructive action (precise click = safety), drag surface, or form controls (use `<label>` instead)
 
-#### 7. No Outdated Patterns
+#### 7. Usability — NN/g Heuristics
+- [ ] **Visibility of system status**: Loading indicators, progress bars, success/error feedback after actions
+- [ ] **Match between system and real world**: Labels, icons, and flows use the user's language, not dev jargon
+- [ ] **User control & freedom**: Undo/back available, no dead ends, easy to dismiss modals/overlays
+- [ ] **Consistency & standards**: Same action = same result everywhere, platform conventions respected
+- [ ] **Error prevention**: Destructive actions need confirmation, form inputs constrain invalid values
+- [ ] **Recognition rather than recall**: Options visible (not memorized), context preserved across steps
+- [ ] **Flexibility & efficiency**: Power-user shortcuts don't break novice flow (keyboard nav, autofocus)
+- [ ] **Aesthetic & minimalist design**: No irrelevant info competing with primary content, clean signal-to-noise
+- [ ] **Help users recover from errors**: Error messages are specific, suggest a fix, and don't blame the user
+- [ ] **Help & documentation**: Tooltips, inline help, or docs link available where actions are non-obvious
+
+#### 8. No Outdated Patterns
 - [ ] No `alert()`, `confirm()`, or `prompt()` browser dialogs — use toast/modal components
 - [ ] No `document.write()` — never acceptable
 - [ ] No deprecated HTML (`<marquee>`, `<blink>`, `<center>`, `<font>`)
@@ -154,8 +173,9 @@ Score each category **A/B/C/D** (A = excellent, D = critical issues). Be strict 
 
 For each issue rated B or worse:
 1. Explain the problem with the specific line/component.
-2. Fix it directly in the code.
-3. If a fix requires a design decision (e.g., color choice), propose 2 options and ask the user.
+2. **"Why it matters"** — cite the UX principle or standard behind the issue (e.g., "WCAG 2.5.8 target size", "NN/g #1 visibility of system status", "Fitts's law"). One sentence, not a lecture.
+3. Fix it directly in the code.
+4. If a fix requires a design decision (e.g., color choice), propose 2 options and ask the user.
 
 ### Step 4: Report
 
@@ -168,12 +188,20 @@ Color & Contrast   [A/B/C/D] — one-line summary
 Responsiveness     [A/B/C/D] — one-line summary
 Consistency        [A/B/C/D] — one-line summary
 Accessibility      [A/B/C/D] — one-line summary
+Usability (NN/g)   [A/B/C/D] — one-line summary
 Modern Patterns    [A/B/C/D] — one-line summary
 ─────────────────────────────────────
 OVERALL            [A/B/C/D]
 
+QUICK WINS (high impact, low effort)
+  ⚡ [file:line] description — Why: [principle]
+  ⚡ [file:line] description — Why: [principle]
+  ...
+
 Fixed: X issues | Remaining: Y issues
 ```
+
+**Quick Wins criteria**: changes that take < 5 min each, touch 1-2 lines, and fix a B-level or worse issue. Examples: darkening a hex for contrast, adding `alt` text, bumping a target size, adding `prefers-reduced-motion`. List max 5, ordered by impact.
 
 ---
 
@@ -239,10 +267,13 @@ For each page, check:
 - [ ] Visual hierarchy
 - [ ] Design system consistency
 - [ ] Responsive behavior
-- [ ] Accessibility (contrast, alt text, focus states, ARIA)
+- [ ] Accessibility (contrast, alt text, focus states, ARIA, WCAG 2.2 criteria)
+- [ ] Usability — NN/g heuristics (system status, error recovery, recognition vs recall, etc.)
 - [ ] Click targets
 - [ ] States: loading, empty, error
 - [ ] No layout shifts
+
+For each finding, include a **"Why it matters"** line citing the relevant UX principle or standard.
 
 ### Phase 4: Cross-Page Consistency
 
@@ -285,10 +316,16 @@ PAGE SCORES
   ...
 
 CROSS-PAGE CONSISTENCY    [A/B/C/D]
-ACCESSIBILITY             [A/B/C/D]
+ACCESSIBILITY (WCAG 2.2)  [A/B/C/D]
+USABILITY (NN/g)          [A/B/C/D]
 RESPONSIVENESS            [A/B/C/D]
 ═══════════════════════════════════════
 OVERALL                   [A/B/C/D]
+
+QUICK WINS (high impact, low effort)
+  ⚡ [file:line] description — Why: [principle]
+  ⚡ [file:line] description — Why: [principle]
+  ... (max 5, ordered by impact)
 
 Fixed: X issues across Y files
 Needs decision: Z items (listed below)

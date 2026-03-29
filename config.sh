@@ -150,7 +150,7 @@ export SHIPFLOW_OPTIONAL_TOOLS=("flox" "git" "jq" "python3")
 
 # Default Flox packages to install for each project type
 export SHIPFLOW_FLOX_NODEJS_PACKAGES="nodejs"
-export SHIPFLOW_FLOX_PYTHON_PACKAGES="python3 python3Packages.pip"
+export SHIPFLOW_FLOX_PYTHON_PACKAGES="python3"
 export SHIPFLOW_FLOX_RUST_PACKAGES="rustc cargo"
 export SHIPFLOW_FLOX_GO_PACKAGES="go"
 
