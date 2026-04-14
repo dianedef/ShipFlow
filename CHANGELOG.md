@@ -1,5 +1,12 @@
 # ShipFlow Changelog
 
+## [2026-04-14] - No local builds in ship/verify flows
+
+### Changed
+- `sf-ship`: Step 6 pre-checks now run typecheck + lint only — `npm run build` removed (build runs in CI/Vercel at push)
+- `sf-verify`: Step 7 technical checks replaces Build with Typecheck; explicit note to use `/sf-check` if a local build is really needed
+- Both skills now document why local builds are forbidden, so future edits don't reintroduce them
+
 ## [2026-03-29] - Design audit upgrade, Python env robustness
 
 ### Added

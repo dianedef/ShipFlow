@@ -61,20 +61,21 @@ For each significant decision or discovery from Step 2, save to memory if useful
 
 Skip if no meaningful decisions were made. No output at this step.
 
-### Step 6 — Pre-checks (lint, build)
+### Step 6 — Pre-checks (typecheck, lint)
 
 Avant de commit, vérifier que le code est clean. Détecter le stack depuis le contexte.
+
+**NE JAMAIS lancer de build ici.** Le build tourne en CI / sur Vercel au push — le refaire en local casse le flow (longue attente, artefacts polluants, faux positifs). Typecheck + lint suffisent pour attraper les erreurs locales.
 
 **Si package.json existe :**
 1. Lancer le typecheck s'il existe (`npm run typecheck` / `pnpm typecheck`)
 2. Lancer le lint s'il existe (`npm run lint` / `pnpm lint`)
-3. Lancer le build (`npm run build` / `pnpm build`)
 
 **Si scripts de test bash existent** (`test_*.sh`) :
 1. Lancer `bash -n` sur les `.sh` modifiés (syntax check)
 
 **Si un check échoue** : STOP. Afficher l'erreur et proposer :
-- "Le build a échoué. Corriger avant de ship ? Ou forcer le push sans check (`/sf-ship skip-check`) ?"
+- "Le check a échoué. Corriger avant de ship ? Ou forcer le push sans check (`/sf-ship skip-check`) ?"
 
 **Si `$ARGUMENTS` contient "skip-check"** : sauter cette étape entièrement.
 

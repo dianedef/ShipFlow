@@ -118,9 +118,11 @@ Ne pas transformer ce step en audit complet. 2-3 minutes max. Seulement ce qui s
 ### Step 7 — Checks techniques (rapide)
 
 Lancer les vérifications techniques de base si un package.json ou des scripts de test existent :
+- Typecheck (s'il existe)
 - Lint (s'il existe)
-- Build (s'il existe)
 - Tests (s'ils existent)
+
+**NE PAS lancer le build.** Le build tourne en CI / Vercel au push — le refaire ici perd du temps et pollue l'environnement. Utiliser `/sf-check` explicitement si un build local est vraiment nécessaire.
 
 Ne pas dupliquer sf-check — juste un run rapide pour confirmer que rien n'est cassé. Si les checks échouent : CRITICAL.
 
