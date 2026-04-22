@@ -59,6 +59,15 @@ Typical CLI actions:
 
 ## Skill Workflow
 
+Bug-first entrypoint:
+
+```text
+sf-fix -> (direct fix path or spec-first path)
+```
+
+If the bug is local and clear, `sf-fix` routes to direct execution.
+If the bug is ambiguous or non-trivial, `sf-fix` routes to `sf-spec -> sf-ready -> sf-start`.
+
 For non-trivial coding work, the default workflow is:
 
 ```text
@@ -69,6 +78,12 @@ Fast path for a small, explicit fix:
 
 ```text
 sf-start -> implementation -> sf-verify -> sf-end
+```
+
+Bug fast path (recommended mental model):
+
+```text
+sf-fix -> sf-start -> implementation -> sf-verify -> sf-end
 ```
 
 The key rule is simple:

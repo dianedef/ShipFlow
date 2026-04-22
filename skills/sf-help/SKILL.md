@@ -7,7 +7,7 @@ argument-hint: [optional: tasks, audit, workflows, prompts]
 
 # Skill System Cheatsheet
 
-Quick reference for all 25 skills, modes, and workflows.
+Quick reference for the skill system, modes, and workflows.
 
 ---
 
@@ -17,6 +17,7 @@ Quick reference for all 25 skills, modes, and workflows.
 
 | Skill | Purpose | Arguments |
 |-------|---------|-----------|
+| `/sf-fix` | Bug-first intake and routing (direct fix vs spec-first) | `<bug description>` |
 | `/sf-tasks` | Track work, check off items, suggest next | `[focus area]` |
 | `/sf-priorities` | Re-rank by impact/effort matrix | `impact`, `effort`, `blockers`, `quick-wins` |
 | `/sf-backlog` | Capture ideas, defer non-urgent | `add "idea"`, `defer`, `review`, `clean` |
@@ -178,6 +179,13 @@ Provide explicit arguments and prompts don't appear:
 /sf-check                    # Verify everything passes
 /sf-ship "Feature description"  # Commit + push
 /sf-tasks                    # Mark completed, get next
+```
+
+### Fix a bug
+```bash
+/sf-fix "short bug description"    # Triage and route
+# If local and clear -> direct fix flow
+# If ambiguous/non-trivial -> /sf-spec -> /sf-ready -> /sf-start
 ```
 
 ### Full deploy
