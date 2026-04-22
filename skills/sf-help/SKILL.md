@@ -46,6 +46,8 @@ Quick reference for the skill system, modes, and workflows.
 | `/sf-deploy` | Full deploy: check → ship → restart → verify | `skip-check` |
 | `/sf-status` | Cross-project git dashboard | (none) |
 
+Note: `/sf-verify` now includes guided next-step prompting when verdict is not ready (`corriger maintenant`, `repasser par spec`, `stop/reprendre`).
+
 ### Scaffolding & Init
 
 | Skill | Purpose | Arguments |

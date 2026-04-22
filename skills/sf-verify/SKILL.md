@@ -20,6 +20,8 @@ argument-hint: [optional: tâche ou scope à vérifier]
 
 Vérifier que le travail en cours est prêt à ship. Cinq dimensions : complétude, correctitude, cohérence, dépendances, risques.
 
+Tu dois aussi guider l'utilisateur vers la suite, pas seulement signaler les écarts.
+
 ### Step 1 — Identifier le scope
 
 Si `$ARGUMENTS` est fourni, l'utiliser comme description de ce qu'on vérifie.
@@ -156,6 +158,38 @@ Générer UN rapport structuré :
 [✓ Prêt à ship / ⚠ N points à revoir / ✗ Pas prêt]
 ```
 
+Ajouter ensuite un bloc workflow explicite :
+
+```text
+### Workflow
+Primary cause: [specified but not implemented / spec incomplete or ambiguous / technical failure / mixed]
+Next step (recommended): [commande exacte]
+Reason: [phrase courte]
+```
+
+### Step 9 — Prompt guidé de suite
+
+Si le verdict est `⚠` ou `✗`, proposer un choix guidé avec **AskUserQuestion** :
+
+- Question: "On fait quoi maintenant ?"
+- `multiSelect: false`
+- Options (ordre recommandé) :
+  1. **Corriger maintenant (recommandé)** — "Tu appliques les fixes suggérés puis tu relances sf-verify"
+  2. **Repasser par spec** — "Tu clarifies/complètes la spec avant de continuer"
+  3. **Stop et reprendre plus tard** — "Tu conserves le diagnostic et t'arrêtes ici"
+
+Puis agir selon le choix :
+- Si **Corriger maintenant** :
+  - corriger les points CRITICAL/WARNING liés à la cause principale
+  - relancer checks ciblés
+  - relancer `sf-verify` sur le même scope
+- Si **Repasser par spec** :
+  - router vers `/sf-spec [scope]`, puis `/sf-ready`, puis `/sf-start`
+- Si **Stop et reprendre plus tard** :
+  - fournir la commande exacte pour reprendre (`/sf-verify [scope]`)
+
+Si le verdict est `✓`, ne pas poser cette question et proposer `/sf-end`.
+
 ### Dégradation gracieuse
 
 - Si pas de TASKS.md : vérifier uniquement git diff + checks techniques
@@ -171,5 +205,6 @@ Générer UN rapport structuré :
 - Chaque issue doit avoir une recommandation actionnable avec référence fichier:ligne
 - Préférer SUGGESTION à WARNING, WARNING à CRITICAL en cas de doute
 - Ne pas inventer de problèmes — vérifier avec des preuves (code lu, tests lancés)
-- Ne pas corriger les problèmes — les reporter seulement (l'utilisateur décide)
+- Ne jamais laisser un verdict `⚠/✗` sans recommandation de suite explicite
+- Prioriser un guidage actionnable pour les utilisateurs non techniques
 - Ne pas être pointilleux sur le style — se concentrer sur les vrais écarts
