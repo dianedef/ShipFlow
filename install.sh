@@ -421,12 +421,27 @@ configure_skills() {
 configure_aliases() {
     local bashrc="$1/.bashrc"
     [ -f "$bashrc" ] || return 0
-    if ! grep -q "alias shipflow=" "$bashrc" 2>/dev/null; then
+    if grep -q "alias shipflow=" "$bashrc" 2>/dev/null; then
+        sed -i "s|^alias shipflow=.*|alias shipflow='$SHIPFLOW_DIR/shipflow.sh'|" "$bashrc"
+    else
         cat >> "$bashrc" << ALIASES
 
 # ShipFlow
 alias shipflow='$SHIPFLOW_DIR/shipflow.sh'
+ALIASES
+    fi
+
+    if grep -q "alias sf=" "$bashrc" 2>/dev/null; then
+        sed -i "s|^alias sf=.*|alias sf='$SHIPFLOW_DIR/shipflow.sh'|" "$bashrc"
+    else
+        cat >> "$bashrc" << ALIASES
 alias sf='$SHIPFLOW_DIR/shipflow.sh'
+ALIASES
+    fi
+
+    if ! grep -q "alias co=" "$bashrc" 2>/dev/null; then
+        cat >> "$bashrc" << 'ALIASES'
+alias co='codex'
 ALIASES
     fi
 }

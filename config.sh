@@ -158,8 +158,9 @@ export SHIPFLOW_FLOX_GO_PACKAGES="go"
 # VALIDATION CONFIGURATION
 # ============================================================================
 
-# Regex for valid environment names
-export SHIPFLOW_ENV_NAME_REGEX="^[a-zA-Z0-9._-]+$"
+# Regex for valid environment names. ShipFlow-created project/environment names
+# are lowercase by convention to keep paths, PM2 apps, and aliases consistent.
+export SHIPFLOW_ENV_NAME_REGEX="^[a-z0-9._-]+$"
 
 # Regex for dangerous path characters
 export SHIPFLOW_DANGEROUS_CHARS_REGEX='[\;\&\|\$\`]'

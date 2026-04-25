@@ -1486,6 +1486,13 @@ validate_project_path() {
         return 1
     fi
 
+    # ShipFlow convention: project paths are lowercase from creation time.
+    # This prevents case-sensitive mismatches between folders, PM2 names, and aliases.
+    if [ "$path" != "${path,,}" ]; then
+        error "Path must be lowercase: $path"
+        return 1
+    fi
+
     # Must exist and be a directory
     if [ ! -d "$path" ]; then
         error "Path does not exist or is not a directory: $path"
@@ -1509,7 +1516,7 @@ validate_project_path() {
 #   1 - Name is invalid
 #
 # Rules:
-#   - Only alphanumeric, dash, underscore, dot allowed
+#   - Only lowercase alphanumeric, dash, underscore, dot allowed
 #   - Cannot start with dash or dot
 #   - Cannot be empty
 #
@@ -1524,9 +1531,9 @@ validate_env_name() {
         return 1
     fi
 
-    # Must contain only alphanumeric, dash, underscore, dot
-    if [[ ! "$name" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-        error "Environment name can only contain letters, numbers, dash, underscore, dot"
+    # Must contain only lowercase alphanumeric, dash, underscore, dot
+    if [[ ! "$name" =~ ^[a-z0-9._-]+$ ]]; then
+        error "Environment name can only contain lowercase letters, numbers, dash, underscore, dot"
         return 1
     fi
 
@@ -3550,7 +3557,7 @@ env_remove() {
 # -----------------------------------------------------------------------------
 env_rename() {
     local old_identifier=$1
-    local new_name=$2
+    local new_name="${2,,}"
 
     # Validate arguments
     if [ -z "$old_identifier" ] || [ -z "$new_name" ]; then
@@ -5012,6 +5019,7 @@ action_rename() {
         local new_name
         new_name=$(ui_input "New name" "$ENV_NAME")
         if [ -n "$new_name" ]; then
+            new_name="${new_name,,}"
             if ui_confirm "Rename '$ENV_NAME' → '$new_name'?"; then
                 log INFO "Menu: renaming environment $ENV_NAME -> $new_name"
                 env_rename "$ENV_NAME" "$new_name"
