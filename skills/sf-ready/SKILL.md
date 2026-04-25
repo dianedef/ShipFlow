@@ -22,6 +22,7 @@ Cette gate s'applique surtout au cadrage initial. Si `sf-verify` découvre plus 
 Cette skill applique la `Definition of Ready` du flow spec-driven :
 - zéro ambiguïté bloquante
 - alignement explicite avec la user story et le résultat métier attendu
+- forme comportementale minimale explicite : entrée/déclencheur, sortie/résultat, échec, edge case principal
 - tâches ordonnées
 - fichiers cibles identifiés
 - systèmes liés et conséquences explicités
@@ -48,6 +49,7 @@ La spec doit contenir :
 - `Title`
 - `Status`
 - `User Story`
+- `Minimal Behavior Contract`
 - `Problem`
 - `Solution`
 - `Scope In`
@@ -79,6 +81,10 @@ Avant de regarder le détail technique, vérifier que la spec relie clairement :
 
 Refuser la spec si un lecteur frais ne peut pas répondre sans hésitation à :
 - qui veut quoi, et pourquoi ?
+- qu'est-ce que la feature accepte ou déclenche ?
+- qu'est-ce qu'elle produit ou rend observable ?
+- que se passe-t-il quand ça échoue ?
+- quel edge case majeur doit être couvert ?
 - qu'est-ce qui change concrètement pour l'utilisateur ou l'opérateur ?
 - qu'est-ce qui ne change pas ?
 - comment saura-t-on que la user story est satisfaite ?
@@ -97,6 +103,8 @@ Contrôler :
 - `Open Questions` est `None`
 - aucune dépendance cachée à l'historique de conversation
 - la spec nomme les préconditions, postconditions et invariants métier importants
+- `Minimal Behavior Contract` tient en un paragraphe comportemental non technique et couvre entrée/déclencheur, sortie/résultat, échec, et edge case principal
+- `Execution Notes` expose une approche d'implémentation en étapes avant code, ainsi que les contraintes explicites : packages à utiliser/éviter, patterns existants, flux de données, abstractions à éviter, limites de scope
 - chaque tâche a :
   - un fichier cible
   - une action explicite
@@ -126,6 +134,8 @@ Critiquer la spec comme si tu voulais :
 - casser un système adjacent sans être détecté
 
 - un agent frais pourrait-il mal interpréter une exigence ?
+- le contrat comportemental minimal cache-t-il une hypothèse sur l'entrée, la sortie, l'échec ou un edge case ?
+- l'approche prévue choisirait-elle le mauvais package, la mauvaise abstraction ou le mauvais flux de données ?
 - un edge case important manque-t-il ?
 - une tâche dépend-elle d'une autre mais apparaît trop tôt ?
 - une action est-elle trop vague pour être implémentée sans décision supplémentaire ?
@@ -198,6 +208,7 @@ Checklist:
 - Acceptance criteria: [ok / fail]
 - Documentation coherence: [ok / fail]
 - Execution notes: [ok / fail]
+- Minimal behavior contract: [ok / fail]
 - Adversarial review: [ok / fail]
 - Security review: [ok / fail]
 - Open questions: [ok / fail]

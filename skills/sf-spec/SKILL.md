@@ -37,6 +37,7 @@ Règle de choix automatique si "Je ne sais pas":
 
 Une spec est prête UNIQUEMENT si :
 - **Ancrée dans la user story** : l'acteur, le besoin, le déclencheur et le résultat attendu sont explicites
+- **Réduite à sa forme comportementale minimale** : un paragraphe dit ce que le système accepte, retourne/produit, fait quand ça échoue, et quel edge case est facile à rater
 - **Actionnable** : chaque tâche a un fichier cible et une action claire
 - **Ordonnée** : les tâches sont triées par dépendance (fondations d'abord)
 - **Testable** : les critères d'acceptation couvrent le happy path et les cas limites
@@ -176,6 +177,7 @@ Utiliser ces titres de sections exacts pour que `/sf-ready` et `/sf-verify` puis
 - `Title`
 - `Status`
 - `User Story`
+- `Minimal Behavior Contract`
 - `Problem`
 - `Solution`
 - `Scope In`
@@ -184,6 +186,7 @@ Utiliser ces titres de sections exacts pour que `/sf-ready` et `/sf-verify` puis
 - `Dependencies`
 - `Invariants`
 - `Links & Consequences`
+- `Documentation Coherence`
 - `Edge Cases`
 - `Implementation Tasks`
 - `Acceptance Criteria`
@@ -205,6 +208,15 @@ Utiliser ces titres de sections exacts pour que `/sf-ready` et `/sf-verify` puis
 
 Ordonnées par dépendance (fondations d'abord).
 
+**Minimal Behavior Contract :**
+Écrire un seul paragraphe non technique qui couvre :
+- ce que la feature accepte ou déclenche
+- ce qu'elle retourne, produit ou rend observable
+- ce qui se passe en cas d'échec
+- l'edge case le plus facile à oublier
+
+Ce paragraphe doit être assez précis pour qu'un agent frais puisse dire si l'implémentation tient la promesse, sans encore parler de fichiers, packages ou architecture.
+
 **Critères d'acceptation (Given/When/Then) :**
 ```markdown
 - [ ] CA N : Given [précondition], when [action], then [résultat attendu]
@@ -218,7 +230,8 @@ Couvrir : promesse principale de la user story, happy path, erreurs, cas limites
 - **Documentation coherence** : docs/support/onboarding/pricing/changelog impacted, or `None, because ...`
 - **Stratégie de test** : unit, intégration, tests manuels
 - **Risques** : points sensibles identifiés (sécurité, perf, données)
-- **Execution Notes** : 3-5 fichiers à lire d'abord, ordre d'exécution, commandes de validation, stop conditions / cas de reroute
+- **Documentation Coherence** : docs, README, guides, FAQ, onboarding, pricing, changelog, exemples ou support à aligner, ou `None, because ...`
+- **Execution Notes** : 3-5 fichiers à lire d'abord, approche d'implémentation en étapes avant code, contraintes explicites (packages à utiliser/éviter, patterns existants, flux de données, abstractions à éviter, limites de scope), ordre d'exécution, commandes de validation, stop conditions / cas de reroute
 
 Quand le scope touche auth, permissions, données, intégrations, paiement, admin, contenu riche, prompts, fichiers, ou automatisations, exiger dans la spec :
 - hypothèses de confiance
@@ -269,6 +282,8 @@ Puis afficher la spec complète.
 
 **Si "Revue adversariale"** : prendre du recul et critiquer sa propre spec :
 - la `User Story` est-elle assez précise pour juger le succès ?
+- Le `Minimal Behavior Contract` couvre-t-il entrée, sortie, échec et edge case principal ?
+- Quelles hypothèses implicites pourraient casser dans un environnement réel ?
 - Les tâches sont-elles vraiment ordonnées par dépendance ?
 - Y a-t-il des cas limites non couverts dans les CA ?
 - Un agent frais pourrait-il implémenter sans contexte supplémentaire ?
@@ -280,6 +295,10 @@ Puis afficher la spec complète.
 - Y a-t-il des formulations vagues sans test associé ?
 - Un acteur malveillant, non autorisé ou simplement hors-chemin pourrait-il contourner le flow prévu ?
 - Présenter les trouvailles, corriger, re-présenter.
+
+Avant de finaliser après revue adversariale, expliciter aussi :
+- l'approche d'implémentation prévue, en étapes courtes, sans écrire de code
+- les contraintes à respecter : packages autorisés/interdits, patterns existants à suivre, flux de données attendu, abstractions à éviter, limites de scope
 
 **Si "C'est bon"** : enregistrer la spec.
 

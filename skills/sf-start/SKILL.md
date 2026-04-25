@@ -74,6 +74,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
 - If a `ready` spec exists, read it fully before touching code
 - Derive an execution contract:
   - spec metadata: `metadata_schema_version`, `artifact_version`, `status`, `updated`
+  - minimal behavior contract: what the feature accepts/triggers, what it produces/returns, what happens on failure, and the easiest edge case to miss
   - dependency/version context from `depends_on`
   - user story and promised outcome
   - target files
@@ -89,6 +90,12 @@ If `spec-first` and no matching `Status: ready` spec exists:
   - stop and route back to `/sf-ready` if the current document is `stale`, has a newer incompatible `artifact_version`, or contradicts the spec
   - ask the user or reroute if a missing version would change product promise, permissions, pricing, data behavior, API contract, architecture, security posture, or documentation obligations
 - If a direct task has no spec but clearly depends on business or technical docs, record a mini-contract with the document names and current versions/status when available.
+- If a direct task has no spec, still form a lightweight mini-contract before editing:
+  - one behavioral paragraph: accepted input/trigger, output/result, failure behavior, likely missed edge case
+  - one short adversarial pass: what is missing, what assumption could break, what edge case is not covered
+  - one implementation plan: files/areas to touch and validation to run
+  - explicit constraints: packages to use or avoid, existing patterns to follow, data flow, abstractions to avoid, scope limits
+  - keep this silent unless it reveals ambiguity that changes product behavior, security, data handling, destructive behavior, or external side effects
 - If a `ready` spec exists, also identify the likely execution topology:
   - implementation groups
   - files owned by each group
@@ -96,6 +103,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
   - groups that can run in parallel vs groups that must wait
 - Read `/home/claude/shipflow/skills/sf-model/references/model-routing.md` before choosing execution model(s)
 - If the spec is missing any of the above, stop and route back to `/sf-ready` or `/sf-spec`
+- If a non-trivial spec lacks `Minimal Behavior Contract`, implementation approach, adversarial gaps, or explicit constraints, stop and route back to `/sf-ready` or `/sf-spec`
 - If the spec is missing required metadata/version context, treat it as a contract gap. Continue only for trivial/local work where the missing metadata cannot change product or security semantics; otherwise route back to `/sf-ready`.
 - If the implementation path would satisfy the listed tasks but miss the user story outcome, stop and reroute instead of coding the wrong thing efficiently
 - If the remaining ambiguity is product-meaningful or security-meaningful, ask the user instead of "picking a sensible default"
