@@ -92,7 +92,7 @@ next_step: "[recommended command]"
 
 Use `depends_on` when an artifact relies on another decision contract, for example BRANDING.md depending on BUSINESS.md, GUIDELINES.md depending on CLAUDE.md, or a spec depending on BUSINESS.md plus GUIDELINES.md. Use `supersedes` when the artifact replaces an older file, a renamed doc, or a previous version whose assumptions are no longer current.
 
-This ShipFlow schema is mandatory for project documentation produced by ShipFlow (`docs/`, specs, reports, API docs, component docs, reviews, audits, research, BUSINESS.md, BRANDING.md, GUIDELINES.md). Application runtime content keeps its own schema (`src/content/**`, app-rendered MD/MDX/blog files, framework-specific collections).
+This ShipFlow schema is mandatory for project documentation produced by ShipFlow (`docs/`, specs, reports, API docs, component docs, reviews, audits, research, `AGENT.md`, `CONTEXT.md`, `CONTEXT-FUNCTION-TREE.md`, `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`). Application runtime content keeps its own schema (`src/content/**`, app-rendered MD/MDX/blog files, framework-specific collections).
 
 Operational tracking files are explicitly excluded from mandatory metadata frontmatter:
 - `TASKS.md`
@@ -251,14 +251,14 @@ Vérifier que la doc existante est cohérente avec le code, à jour, et respecte
 ### Flow
 
 1. **Inventorier toute la doc existante :**
-   - README.md, CLAUDE.md, CHANGELOG.md
+   - README.md, CLAUDE.md, AGENT.md, CONTEXT.md, CONTEXT-FUNCTION-TREE.md, CHANGELOG.md
    - BUSINESS.md, BRANDING.md, GUIDELINES.md
    - FOUNDER.md / AUTHOR.md, INSPIRATION.md, SOURCE.md
    - Dossier `docs/` (tous les fichiers .md)
    - JSDoc/TSDoc/docstrings dans le code
    - Commentaires d'en-tête de composants
    - `.env.example` vs variables réellement utilisées
-   - Frontmatter ShipFlow sur les artefacts internes : specs, reports, reviews, research, audit docs, API/component docs générées
+   - Frontmatter ShipFlow sur les artefacts internes : specs, reports, reviews, research, audit docs, API/component docs générées, AGENT/CONTEXT docs
 
 2. **Vérifier la cohérence code ↔ doc :**
    - **Drift** : la doc mentionne-t-elle des fonctions/fichiers/routes qui n'existent plus ?
@@ -439,6 +439,9 @@ Use this mode for:
 
 2. **Définir le scope avant édition**
    - Scope par défaut pour legacy adoption :
+     - `AGENT.md`
+     - `CONTEXT.md`
+     - `CONTEXT-FUNCTION-TREE.md`
      - `BUSINESS.md`
      - `BRANDING.md`
      - `GUIDELINES.md`
@@ -486,7 +489,7 @@ tools/shipflow_metadata_lint.py
    - Si le scope est explicite, préférer :
 
 ```bash
-tools/shipflow_metadata_lint.py BUSINESS.md BRANDING.md GUIDELINES.md specs docs
+tools/shipflow_metadata_lint.py AGENT.md CONTEXT.md CONTEXT-FUNCTION-TREE.md BUSINESS.md BRANDING.md GUIDELINES.md specs docs
 ```
 
    - Pour une vérification large volontaire, utiliser `--all-markdown` seulement si l'utilisateur a explicitement demandé de contrôler tous les Markdown, en sachant que les contenus runtime et archives peuvent produire des faux positifs.

@@ -39,6 +39,8 @@ Use it when:
 
 Official migration scope for legacy adoption:
 
+- `AGENT.md` when it is the active agent entrypoint
+- `CONTEXT.md` and promoted specialized context docs when they are part of the official project context layer
 - `BUSINESS.md`
 - `BRANDING.md`
 - `GUIDELINES.md`
@@ -80,6 +82,7 @@ Metadata is required for ShipFlow decision artifacts, including:
 
 For legacy bulk migration, keep the official default scope narrower:
 
+- active context docs (`AGENT.md`, `CONTEXT.md`, promoted `CONTEXT-*` docs)
 - `BUSINESS.md`
 - `BRANDING.md`
 - `GUIDELINES.md`

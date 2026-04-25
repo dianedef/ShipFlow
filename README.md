@@ -27,6 +27,9 @@ It has two layers:
 
 ## Core Docs
 
+- [AGENT.md](./AGENT.md) — agent entrypoint: where to look first depending on the task
+- [CONTEXT.md](./CONTEXT.md) — compact operational map of the project, hotspots, invariants, and edit routing
+- [CONTEXT-FUNCTION-TREE.md](./CONTEXT-FUNCTION-TREE.md) — grouped function tree for the main shell scripts
 - [CLAUDE.md](./CLAUDE.md) — repository constraints and coding guidance
 - [shipflow-spec-driven-workflow.md](./shipflow-spec-driven-workflow.md) — ShipFlow V3 workflow for `sf-explore`, `sf-spec`, `sf-ready`, `sf-start`, `sf-verify`, and `sf-end`
 - [shipflow-metadata-migration-guide.md](./shipflow-metadata-migration-guide.md) — how to adopt ShipFlow metadata and versioning in an existing project
@@ -133,6 +136,16 @@ The key rule is simple:
 - reduce ambiguity before coding
 - verify against the contract before closing
 
+## Context Layer
+
+ShipFlow now uses a dedicated context layer for fast agent onboarding.
+
+- `AGENT.md` is the routing file: it tells an agent where to look first.
+- `CONTEXT.md` is the operational map: entry points, core flows, hotspots, invariants, and where to edit what.
+- `CONTEXT-FUNCTION-TREE.md` is a specialized companion for large procedural files such as `lib.sh`.
+
+This split is intentional. `CLAUDE.md` should hold constraints and critical rules, not the full project map. The context files exist to reduce repetitive discovery work at the start of a fresh thread without pretending to replace the code.
+
 ## ShipFlow as a Professional Work Framework
 
 ShipFlow is not just a collection of prompts or isolated skills. It is a work framework built around explicit decision contracts.
@@ -190,9 +203,9 @@ tools/shipflow_metadata_lint.py
 
 For legacy projects, use the migration playbook in [`shipflow-metadata-migration-guide.md`](./shipflow-metadata-migration-guide.md) before normalizing old docs.
 
-By default it checks `specs/`, `docs/`, `BUSINESS.md`, `BRANDING.md`, and `GUIDELINES.md`. Pass explicit files or folders to validate a narrower scope.
+By default it checks `specs/`, `docs/`, `AGENT.md`, `CONTEXT.md`, `CONTEXT-FUNCTION-TREE.md`, `BUSINESS.md`, `BRANDING.md`, and `GUIDELINES.md`. Pass explicit files or folders to validate a narrower scope.
 
-For internal ShipFlow files, this schema is mandatory for the active official artifact set. For legacy project adoption, the default migration scope is intentionally narrower: `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, and `specs/*.md`. Historical ad hoc docs can stay out of scope until they are promoted into the active ShipFlow workflow.
+For internal ShipFlow files, this schema is mandatory for the active official artifact set. That set now includes `AGENT.md`, `CONTEXT.md`, and promoted specialized context docs such as `CONTEXT-FUNCTION-TREE.md`. For legacy project adoption, the default migration scope is intentionally narrower: active context docs when they exist, `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, and `specs/*.md`. Historical ad hoc docs can stay out of scope until they are promoted into the active ShipFlow workflow.
 
 Operational tracking files are intentionally excluded from the mandatory artifact schema: `TASKS.md`, `AUDIT_LOG.md`, and `PROJECTS.md` are trackers/registries, not decision contracts. Keep them fast to edit. If a task entry contains a durable decision, spec, or business rule, extract that durable content into a dedicated artifact with metadata instead of adding frontmatter to the tracker itself.
 

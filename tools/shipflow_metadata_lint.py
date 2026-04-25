@@ -13,7 +13,16 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_TARGETS = ("specs", "docs", "BUSINESS.md", "BRANDING.md", "GUIDELINES.md")
+DEFAULT_TARGETS = (
+    "specs",
+    "docs",
+    "AGENT.md",
+    "CONTEXT.md",
+    "CONTEXT-FUNCTION-TREE.md",
+    "BUSINESS.md",
+    "BRANDING.md",
+    "GUIDELINES.md",
+)
 VALID_STATUSES = {"draft", "reviewed", "ready", "active", "stale", "superseded"}
 VALID_CONFIDENCE = {"low", "medium", "high", "unknown"}
 VALID_RISK = {"low", "medium", "high", "critical", "unknown"}
@@ -58,7 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "paths",
         nargs="*",
-        help="Files or directories to lint. Defaults to specs/, docs/, BUSINESS.md, BRANDING.md, GUIDELINES.md.",
+        help="Files or directories to lint. Defaults to specs/, docs/, AGENT.md, CONTEXT.md, CONTEXT-FUNCTION-TREE.md, BUSINESS.md, BRANDING.md, GUIDELINES.md.",
     )
     parser.add_argument(
         "--all-markdown",

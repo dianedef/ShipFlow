@@ -84,6 +84,8 @@ Application content is content parsed or rendered by the project runtime: `src/c
 
 ShipFlow work artifacts are produced to run and govern the work. They include:
 
+- agent entrypoint docs
+- project context docs
 - specs
 - readiness reports
 - verification reports
@@ -114,6 +116,7 @@ Location rule:
 
 Skill-aligned artifact templates live in `templates/artifacts/`. They should encode the structures expected by the active skills (`sf-spec`, `sf-ready`, `sf-verify`, `sf-review`, `sf-research`) instead of replacing those conventions. The current templates cover:
 
+- `context`
 - `spec`
 - `business_context`
 - `brand_context`
@@ -130,11 +133,23 @@ Validate metadata with:
 tools/shipflow_metadata_lint.py
 ```
 
-The linter is intentionally dependency-free. It checks the default ShipFlow artifact locations (`specs/`, `docs/`, `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`) and can also receive explicit files or folders.
+The linter is intentionally dependency-free. It checks the default ShipFlow artifact locations (`specs/`, `docs/`, `AGENT.md`, `CONTEXT.md`, `CONTEXT-FUNCTION-TREE.md`, `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`) and can also receive explicit files or folders.
 
 For existing projects with legacy docs, follow [`shipflow-metadata-migration-guide.md`](./shipflow-metadata-migration-guide.md) and prefer additive frontmatter migration before deeper document rewrites.
 
-For legacy migration, the official default scope is `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, and `specs/*.md`. Do not expand the migration endlessly to every old markdown file unless that file is part of the active ShipFlow documentation set.
+For legacy migration, the official default scope is active context docs when they exist, `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, and `specs/*.md`. Do not expand the migration endlessly to every old markdown file unless that file is part of the active ShipFlow documentation set.
+
+## Agent Context Layer
+
+ShipFlow now separates agent context into three levels:
+
+- `CLAUDE.md`: repo constraints, critical rules, and coding guidance
+- `AGENT.md`: routing doc that tells a fresh agent where to look first
+- `CONTEXT.md`: compact operational map of the project
+
+Specialized context docs can extend this layer when a repo contains a large procedural or architectural hotspot. `CONTEXT-FUNCTION-TREE.md` is the reference example: it exists because a fresh agent cannot efficiently infer the structure of a large shell file like `lib.sh` from memory alone.
+
+This layer exists to reduce repeated discovery work in fresh threads. It is not a substitute for reading code. If a context doc and the code disagree, the code wins and the context doc should be updated.
 
 Minimum metadata:
 
