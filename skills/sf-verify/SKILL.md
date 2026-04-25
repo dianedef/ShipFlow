@@ -25,6 +25,7 @@ Tu dois aussi guider l'utilisateur vers la suite, pas seulement signaler les éc
 Les snapshots de `TASKS.md` lus ici sont informatifs seulement.
 Les fichiers de tracking partagés sont read-only dans `sf-verify`.
 `sf-verify` peut corriger du code si le contrat est stable, mais ne doit pas modifier `TASKS.md`, `AUDIT_LOG.md` ou `PROJECTS.md`.
+`TASKS.md`, `AUDIT_LOG.md` et `PROJECTS.md` sont des trackers/registries opérationnels : ne pas leur exiger de frontmatter metadata. Si un tracker contient une décision durable, signaler qu'elle devrait être extraite vers un artefact ShipFlow versionné, mais ne pas traiter l'absence de metadata sur le tracker comme un défaut.
 
 ### Step 1 — Identifier le scope
 

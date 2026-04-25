@@ -93,6 +93,13 @@ Use `depends_on` when an artifact relies on another decision contract, for examp
 
 This ShipFlow schema is mandatory for project documentation produced by ShipFlow (`docs/`, specs, reports, API docs, component docs, reviews, audits, research, BUSINESS.md, BRANDING.md, GUIDELINES.md). Application runtime content keeps its own schema (`src/content/**`, app-rendered MD/MDX/blog files, framework-specific collections).
 
+Operational tracking files are explicitly excluded from mandatory metadata frontmatter:
+- `TASKS.md`
+- `AUDIT_LOG.md`
+- `PROJECTS.md`
+
+They are trackers/registries, not decision contracts. Do not add frontmatter to them during docs audit/update. If a tracker contains a durable decision, spec, business rule, or research conclusion, extract that content into a dedicated ShipFlow artifact with metadata and leave the tracker entry as a pointer or task.
+
 When adopting ShipFlow in an existing project, migrate old ShipFlow docs without metadata by adding the standard frontmatter. Preserve the body and only infer fields that are evident; use `unknown` or `medium|low` confidence instead of inventing proof.
 
 ---

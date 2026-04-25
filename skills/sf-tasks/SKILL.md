@@ -19,6 +19,8 @@ argument-hint: [optional focus area or task type]
 
 **CRITICAL**: This workspace tracks 12 projects from a single master file at `/home/claude/shipflow_data/TASKS.md`.
 
+- `TASKS.md` is an operational tracker, not a ShipFlow decision artifact. Do not add YAML frontmatter or metadata schema fields to `TASKS.md`.
+- If a task contains a durable decision, spec, business rule, research conclusion, or product contract, keep the task entry concise and extract the durable content into a separate metadata-bearing artifact via `/sf-docs`, `/sf-spec`, `/sf-research`, or the relevant skill.
 - **Always update `/home/claude/shipflow_data/TASKS.md`** (the master tracker) — this is the single source of truth
 - If working inside a sub-project (e.g., `/home/claude/winflowz/`), update BOTH the local TASKS.md AND the master TASKS.md
 - The master file has a Dashboard table, per-project task sections, cross-project concerns, and a backlog
