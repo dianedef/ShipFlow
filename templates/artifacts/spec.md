@@ -39,6 +39,27 @@ draft
 
 En tant que [actor], je veux [capability], afin de [value].
 
+## Minimal Behavior Contract
+
+[One non-technical paragraph: what the feature accepts or triggers, what it produces or returns, what happens on failure, and the easiest edge case to miss.]
+
+## Success Behavior
+
+- Preconditions: [state or inputs required for success.]
+- Trigger: [user/system action.]
+- User/operator result: [observable result.]
+- System effect: [data persisted, status updated, event sent, file created, job launched, or `None, because ...`]
+- Success proof: [test, sanity check, log, final state, or `None, because ...`]
+- Silent success: [not allowed / justified because ... and verifiable by ...]
+
+## Error Behavior
+
+- Expected failures: [invalid input, missing permission, absent resource, external dependency error, timeout, duplicate, concurrency, stale state, or `None, because ...`]
+- User/operator response: [message, status, fallback, or `None, because ...`]
+- System effect: [no mutation, rollback, pending state, retry, compensation, log, alert, or `None, because ...`]
+- Must never happen: [partial inconsistent data, expanded permission, unconfirmed deletion, logged secret, repeated side effect, or `None, because ...`]
+- Silent failure: [not allowed / justified because ... and recoverable by ...]
+
 ## Problem
 
 [What user, operator, or business problem is being solved.]

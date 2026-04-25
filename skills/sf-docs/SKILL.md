@@ -1,8 +1,8 @@
 ---
 name: sf-docs
-description: Générer, auditer et harmoniser la documentation — README, API docs, component docs, audit de cohérence, ou fichier spécifique
+description: Générer, auditer et harmoniser la documentation — README, API docs, component docs, audit de cohérence, migration frontmatter, ou fichier spécifique
 disable-model-invocation: true
-argument-hint: [file-path | "readme" | "api" | "components" | "audit" | "update"]
+argument-hint: [file-path | "readme" | "api" | "components" | "audit" | "update" | "metadata" | "migrate-frontmatter"]
 ---
 
 ## Context
@@ -24,6 +24,7 @@ argument-hint: [file-path | "readme" | "api" | "components" | "audit" | "update"
 - **`$ARGUMENTS` is "components"** → COMPONENTS MODE: document all UI components.
 - **`$ARGUMENTS` is "audit"** → AUDIT MODE: vérifier la cohérence de toute la doc existante.
 - **`$ARGUMENTS` is "update"** → UPDATE MODE: harmoniser et mettre à jour la doc existante.
+- **`$ARGUMENTS` is "metadata" or "migrate-frontmatter"** → METADATA MODE: migrer et vérifier le frontmatter ShipFlow des artefacts actifs.
 - **`$ARGUMENTS` is empty** → AUTO MODE: detect gaps and suggest what to document.
 
 ---
@@ -106,6 +107,8 @@ Location rule:
 - During docs audit/update, do not "centralize" project decision docs into `shipflow_data` unless the user explicitly wants an inventory or backup copy. Prefer updating the in-repo source of truth.
 
 When adopting ShipFlow in an existing project, migrate old ShipFlow docs without metadata by adding the standard frontmatter. Preserve the body and only infer fields that are evident; use `unknown` or `medium|low` confidence instead of inventing proof.
+
+For frontmatter migration, read `shipflow-metadata-migration-guide.md` before editing when it exists. Validate the intended scope with `tools/shipflow_metadata_lint.py` after migration. If either file is missing, continue with this skill's schema rules but report the missing migration support as a confidence gap.
 
 ---
 
@@ -414,6 +417,115 @@ Harmoniser et mettre à jour la doc existante pour la rendre cohérente.
 - CLAUDE.md — section Framework actualisée
 - docs/API.md — 3 endpoints ajoutés, 1 endpoint supprimé retiré
 ```
+
+---
+
+## METADATA MODE
+
+Migrer et vérifier le frontmatter ShipFlow des anciens artefacts actifs sans réécrire leur contenu.
+
+Use this mode for:
+- `$ARGUMENTS` = `metadata`
+- `$ARGUMENTS` = `migrate-frontmatter`
+- explicit user requests such as "migrate frontmatter", "make docs metadata compliant", "verify ShipFlow metadata", or "check docs compliance"
+
+### Flow
+
+1. **Lire la doctrine de migration**
+   - Lire `shipflow-metadata-migration-guide.md` si présent.
+   - Lire `shipflow-spec-driven-workflow.md` si présent et si le scope touche specs, readiness, verification, audits or decision contracts.
+   - Lire `tools/shipflow_metadata_lint.py` si présent pour connaître les champs réellement validés.
+   - Si un de ces fichiers est absent, continuer avec la doctrine de cette skill et signaler le gap.
+
+2. **Définir le scope avant édition**
+   - Scope par défaut pour legacy adoption :
+     - `BUSINESS.md`
+     - `BRANDING.md`
+     - `GUIDELINES.md`
+     - `specs/*.md`
+     - `docs/**/*.md` seulement si le dossier existe et contient des artefacts ShipFlow actifs
+   - Ne pas élargir automatiquement à tous les `.md` du repo.
+   - Ne pas migrer `archive/`, anciennes notes ad hoc, rapports historiques, ou docs expérimentales sauf si l'utilisateur les promeut explicitement comme artefacts actifs.
+   - Si l'utilisateur demande "toutes les docs", interpréter comme "tous les artefacts ShipFlow actifs" et rapporter les exclusions.
+
+3. **Classer chaque fichier candidat**
+
+   Produire mentalement ou dans le rapport ces catégories :
+   - `migrate` — artefact ShipFlow actif sans frontmatter ou avec frontmatter incomplet.
+   - `already compliant` — artefact actif avec frontmatter valide.
+   - `runtime content` — contenu applicatif dont le frontmatter est consommé par le framework (`src/content/**`, blog MDX, pages SEO, collections Astro, etc.).
+   - `tracker excluded` — `TASKS.md`, `AUDIT_LOG.md`, `PROJECTS.md`.
+   - `archive excluded` — archive, notes historiques, rapports obsolètes.
+   - `ambiguous` — fichier dont le rôle n'est pas clair.
+
+   Pour `runtime content`, préserver le schéma applicatif. Ne pas ajouter de frontmatter ShipFlow si cela peut casser le parser.
+
+   Pour `tracker excluded`, ne jamais ajouter de frontmatter. Si le tracker contient une décision durable, recommander d'extraire cette décision dans un artefact séparé.
+
+   Pour `ambiguous`, demander confirmation si la migration changerait la source de vérité, la visibilité publique, le runtime, ou le périmètre officiel. Sinon laisser exclu et rapporter.
+
+4. **Migrer de façon additive**
+   - Ajouter uniquement le frontmatter ShipFlow.
+   - Préserver intégralement le body.
+   - Ne pas normaliser les titres, sections, langue, style, liens ou contenu pendant la passe metadata.
+   - Inférer seulement les champs évidents depuis le chemin, le titre, le contenu, la date et les contrats cités.
+   - Utiliser `unknown` quand une valeur n'est pas prouvée.
+   - Utiliser `confidence: low` pour une migration reconstruite.
+   - Utiliser `status: draft` et `artifact_version: "0.1.0"` tant qu'il n'y a pas eu revue explicite.
+   - Pour un artefact déjà `reviewed`, `ready` ou `active`, vérifier que `artifact_version >= 1.0.0`; sinon garder prudent ou demander confirmation.
+   - Ajouter `depends_on` seulement quand une dépendance business/technique est clairement citée.
+   - Ajouter `supersedes` seulement si le fichier remplace explicitement une ancienne source.
+
+5. **Valider avec le linter**
+   - Après migration, lancer le linter sur le scope prévu :
+
+```bash
+tools/shipflow_metadata_lint.py
+```
+
+   - Si le scope est explicite, préférer :
+
+```bash
+tools/shipflow_metadata_lint.py BUSINESS.md BRANDING.md GUIDELINES.md specs docs
+```
+
+   - Pour une vérification large volontaire, utiliser `--all-markdown` seulement si l'utilisateur a explicitement demandé de contrôler tous les Markdown, en sachant que les contenus runtime et archives peuvent produire des faux positifs.
+   - Si le linter échoue, corriger les erreurs de frontmatter dans les fichiers migrés. Ne pas "corriger" en ajoutant du frontmatter à des fichiers exclus.
+   - Si le linter ne peut pas être lancé, rapporter `metadata compliance not proven`.
+
+6. **Rapport final**
+
+```text
+## Metadata Migration — [project]
+
+Scope:
+- Intended: [paths]
+- Migrated: [N files]
+- Already compliant: [N files]
+- Excluded runtime content: [N files]
+- Excluded trackers: [N files]
+- Excluded archives/history: [N files]
+- Ambiguous: [N files]
+
+Validation:
+- Linter: [passed / failed / not available]
+- Command: [exact command]
+
+Files changed:
+- [file] — [frontmatter added/normalized, body preserved]
+
+Remaining gaps:
+- [ambiguous file / missing proof / linter limitation / runtime schema risk]
+```
+
+### Rules
+
+- Metadata migration is not a content rewrite.
+- Prefer a narrow official scope over an endless cleanup of historical Markdown.
+- Do not pretend inferred metadata is reviewed. Use `draft`, `0.1.0`, `confidence: low`, and `unknown`.
+- Do not make runtime content compliant at the cost of breaking the app.
+- Do not add frontmatter to operational trackers.
+- Always report what was excluded and why.
 
 ---
 

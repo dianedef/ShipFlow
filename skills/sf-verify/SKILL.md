@@ -41,6 +41,9 @@ Si une spec `ready` existe pour ce scope, l'utiliser comme contrat principal. Si
 Si une spec existe, extraire explicitement :
 - Frontmatter metadata : `metadata_schema_version`, `artifact_version`, `status`, `updated`, `depends_on`
 - `User Story`
+- `Minimal Behavior Contract`
+- `Success Behavior`
+- `Error Behavior`
 - `Acceptance Criteria`
 - `Invariants`
 - `Links & Consequences`
@@ -69,6 +72,28 @@ Si la user story n'est pas explicitement vérifiable avec le code, les tests, ou
 Si le verdict dépend d'une question produit ou sécurité encore ouverte, ne pas masquer l'incertitude : nommer la question et dégrader le verdict en conséquence.
 
 **Résultat** : promesse tenue / partiellement tenue / non démontrée avec preuves
+
+### Step 2.5 — Vérifier les comportements succès / erreur
+
+Si une spec existe, vérifier explicitement `Success Behavior` et `Error Behavior`. Sinon, les reconstruire depuis la description de tâche, le diff et les tests disponibles, puis signaler que le contrat est implicite.
+
+**Success Behavior**
+- Identifier le résultat observable attendu quand la feature fonctionne.
+- Vérifier que le succès n'est pas silencieux : l'utilisateur ou l'opérateur doit voir un changement d'état, une redirection utile, un statut, une donnée, un contrôle disponible, ou une autre preuve compréhensible.
+- Vérifier l'effet système attendu : donnée persistée, statut mis à jour, événement envoyé, fichier créé, job lancé, affichage rendu, commande disponible, etc.
+- Chercher une preuve : test, sanity check, diff lisible, log attendu, état final vérifiable.
+- Si le succès silencieux est intentionnel, vérifier que le contrat le justifie et donne un autre moyen fiable de confirmer le résultat.
+- Si la réussite n'est prouvée que par un check technique générique, marquer `partial` ou `not demonstrated`.
+
+**Error Behavior**
+- Identifier les erreurs prévues : entrée invalide, droit manquant, ressource absente, dépendance externe indisponible, timeout, doublon, concurrence, état périmé, échec partiel.
+- Vérifier que l'erreur n'est pas silencieuse : l'utilisateur ou l'opérateur doit recevoir une explication, un état récupérable, une action possible, ou un signal exploitable.
+- Vérifier le comportement attendu : message/retour utilisateur, absence de mutation, rollback, retry, état `pending`, compensation, journalisation ou alerte.
+- Si l'échec silencieux est intentionnel, vérifier que le contrat le justifie et décrit le mécanisme de récupération ou d'observation.
+- Vérifier ce qui ne doit jamais arriver : donnée partielle incohérente, permission élargie, suppression non confirmée, secret loggué, side effect répété.
+- Si un comportement d'erreur important n'est ni spécifié ni couvert, signaler `WARNING`; si cela peut casser données, sécurité, argent, workflow ou action destructive, signaler `CRITICAL`.
+
+**Résultat** : success behavior pass/partial/fail/not demonstrated ; error behavior pass/partial/fail/not demonstrated
 
 ### Step 3 — Vérifier les metadata et versions de contrat
 
@@ -240,6 +265,8 @@ Générer UN rapport structuré :
 | Dimension    | Résultat                    |
 |--------------|-----------------------------|
 | User story   | Promise tenue / partielle   |
+| Success      | Pass / partial / fail       |
+| Error        | Pass / partial / fail       |
 | Complétude   | X/Y tâches, Z fichiers      |
 | Correctitude | M/N points vérifiés         |
 | Cohérence    | Conforme / N écarts         |
@@ -269,6 +296,18 @@ Inclure explicitement :
 - Story: [one-line story]
 - Outcome delivered: [yes / partial / no]
 - Evidence: [tests, diff, manual path, missing proof]
+```
+
+Ajouter aussi :
+
+```text
+### Success / Error Verdict
+- Success behavior: [pass / partial / fail / not demonstrated]
+- Success evidence: [tests, diff, manual path, final state]
+- Error behavior: [pass / partial / fail / not demonstrated]
+- Error evidence: [tests, guarded code path, manual path, missing proof]
+- Partial failure behavior: [pass / partial / fail / not applicable]
+- Observability: [success visible / error visible / justified silent / gap]
 ```
 
 Ajouter ensuite un bloc workflow explicite :

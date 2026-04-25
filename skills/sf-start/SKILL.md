@@ -75,6 +75,8 @@ If `spec-first` and no matching `Status: ready` spec exists:
 - Derive an execution contract:
   - spec metadata: `metadata_schema_version`, `artifact_version`, `status`, `updated`
   - minimal behavior contract: what the feature accepts/triggers, what it produces/returns, what happens on failure, and the easiest edge case to miss
+  - success behavior: observable success result, expected system effect, and proof to validate
+  - error behavior: expected response for invalid input, missing permissions/resources, partial failure, retry/rollback/timeout, and forbidden bad states
   - dependency/version context from `depends_on`
   - user story and promised outcome
   - target files
@@ -92,6 +94,8 @@ If `spec-first` and no matching `Status: ready` spec exists:
 - If a direct task has no spec but clearly depends on business or technical docs, record a mini-contract with the document names and current versions/status when available.
 - If a direct task has no spec, still form a lightweight mini-contract before editing:
   - one behavioral paragraph: accepted input/trigger, output/result, failure behavior, likely missed edge case
+  - success behavior: what must be observable when the change works
+  - error behavior: what must happen when expected failure modes occur
   - one short adversarial pass: what is missing, what assumption could break, what edge case is not covered
   - one implementation plan: files/areas to touch and validation to run
   - explicit constraints: packages to use or avoid, existing patterns to follow, data flow, abstractions to avoid, scope limits
@@ -103,7 +107,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
   - groups that can run in parallel vs groups that must wait
 - Read `/home/claude/shipflow/skills/sf-model/references/model-routing.md` before choosing execution model(s)
 - If the spec is missing any of the above, stop and route back to `/sf-ready` or `/sf-spec`
-- If a non-trivial spec lacks `Minimal Behavior Contract`, implementation approach, adversarial gaps, or explicit constraints, stop and route back to `/sf-ready` or `/sf-spec`
+- If a non-trivial spec lacks `Minimal Behavior Contract`, `Success Behavior`, `Error Behavior`, implementation approach, adversarial gaps, or explicit constraints, stop and route back to `/sf-ready` or `/sf-spec`
 - If the spec is missing required metadata/version context, treat it as a contract gap. Continue only for trivial/local work where the missing metadata cannot change product or security semantics; otherwise route back to `/sf-ready`.
 - If the implementation path would satisfy the listed tasks but miss the user story outcome, stop and reroute instead of coding the wrong thing efficiently
 - If the remaining ambiguity is product-meaningful or security-meaningful, ask the user instead of "picking a sensible default"
@@ -182,6 +186,8 @@ Execute the changes directly.
 
 Implementation constraints:
 - implement the user story outcome, not a narrow proxy metric
+- make successful actions observable to the user/operator unless the contract explicitly justifies silent success and provides another verification path
+- make failures observable or recoverable unless the contract explicitly justifies silent failure and provides a recovery/observation path
 - follow existing project conventions
 - keep the change inside the declared task scope
 - preserve the invariants and linked systems named in the execution contract
@@ -197,6 +203,8 @@ Implementation constraints:
 
 Run focused validation relevant to the modified area:
 - include at least one validation that the main user story outcome is actually delivered
+- validate `Success Behavior` and `Error Behavior` when the contract names them; if an error path cannot be exercised, state the gap explicitly
+- include a sanity check that success is not silent and failure is not silent unless explicitly justified by the contract
 - targeted tests if available
 - quick lint/type check for touched modules when practical
 - syntax check for touched shell scripts if relevant
@@ -244,6 +252,11 @@ Metadata / version context:
 
 User story validation:
 - [main promised outcome] -> [pass/fail]
+
+Success / error behavior:
+- Success behavior -> [pass/fail/not checked]
+- Error behavior -> [pass/fail/not checked]
+- Observability -> [success visible / error visible / justified silent / gap]
 
 Security / abuse checks:
 - [check] -> [pass/fail]

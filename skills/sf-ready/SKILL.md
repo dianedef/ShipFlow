@@ -50,6 +50,8 @@ La spec doit contenir :
 - `Status`
 - `User Story`
 - `Minimal Behavior Contract`
+- `Success Behavior`
+- `Error Behavior`
 - `Problem`
 - `Solution`
 - `Scope In`
@@ -84,6 +86,8 @@ Refuser la spec si un lecteur frais ne peut pas répondre sans hésitation à :
 - qu'est-ce que la feature accepte ou déclenche ?
 - qu'est-ce qu'elle produit ou rend observable ?
 - que se passe-t-il quand ça échoue ?
+- à quoi ressemble une réussite observable et vérifiable ?
+- à quoi ressemble une erreur correctement gérée ?
 - quel edge case majeur doit être couvert ?
 - qu'est-ce qui change concrètement pour l'utilisateur ou l'opérateur ?
 - qu'est-ce qui ne change pas ?
@@ -104,6 +108,10 @@ Contrôler :
 - aucune dépendance cachée à l'historique de conversation
 - la spec nomme les préconditions, postconditions et invariants métier importants
 - `Minimal Behavior Contract` tient en un paragraphe comportemental non technique et couvre entrée/déclencheur, sortie/résultat, échec, et edge case principal
+- `Success Behavior` explicite les préconditions, l'action, le résultat utilisateur/opérateur, l'effet système attendu et la preuve de succès
+- `Error Behavior` explicite les entrées invalides ou états d'échec pertinents, le retour utilisateur/opérateur, l'effet système attendu, et ce qui ne doit jamais arriver
+- toute action réussie produit un changement d'état observable, ou la spec justifie explicitement pourquoi le succès peut rester silencieux et comment il reste vérifiable
+- toute erreur produit une explication observable ou un état récupérable, ou la spec justifie explicitement pourquoi l'échec peut rester silencieux et comment il reste récupérable
 - `Execution Notes` expose une approche d'implémentation en étapes avant code, ainsi que les contraintes explicites : packages à utiliser/éviter, patterns existants, flux de données, abstractions à éviter, limites de scope
 - chaque tâche a :
   - un fichier cible
@@ -114,8 +122,8 @@ Contrôler :
 - `Documentation Coherence` nomme les docs, README, guides, FAQ, onboarding, pricing, changelog, exemples ou support à aligner, ou explique `None, because ...`
 - `Execution Notes` donne les fichiers à lire d'abord, les commandes de validation et les stop conditions
 - les acceptance criteria couvrent :
-  - happy path
-  - erreurs
+  - `Success Behavior`
+  - `Error Behavior`
   - cas limites
 - les prérequis de données, auth, permissions, feature flags, migrations ou config sont explicités si pertinents
 - les non-goals de `Scope Out` bornent bien le travail
@@ -135,6 +143,10 @@ Critiquer la spec comme si tu voulais :
 
 - un agent frais pourrait-il mal interpréter une exigence ?
 - le contrat comportemental minimal cache-t-il une hypothèse sur l'entrée, la sortie, l'échec ou un edge case ?
+- `Success Behavior` peut-il être validé par un test, un sanity check, un log ou un état final observable ?
+- `Error Behavior` laisse-t-il une erreur partielle, un retry, un rollback, un timeout ou un doublon sans comportement défini ?
+- un succès peut-il sembler ne rien faire pour l'utilisateur ou l'opérateur ?
+- une erreur peut-elle disparaître sans message, état récupérable, log utile ou action possible ?
 - l'approche prévue choisirait-elle le mauvais package, la mauvaise abstraction ou le mauvais flux de données ?
 - un edge case important manque-t-il ?
 - une tâche dépend-elle d'une autre mais apparaît trop tôt ?
@@ -206,6 +218,8 @@ Checklist:
 - Task ordering: [ok / fail]
 - Links & consequences: [ok / fail]
 - Acceptance criteria: [ok / fail]
+- Success behavior: [ok / fail]
+- Error behavior: [ok / fail]
 - Documentation coherence: [ok / fail]
 - Execution notes: [ok / fail]
 - Minimal behavior contract: [ok / fail]

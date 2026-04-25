@@ -178,6 +178,8 @@ Utiliser ces titres de sections exacts pour que `/sf-ready` et `/sf-verify` puis
 - `Status`
 - `User Story`
 - `Minimal Behavior Contract`
+- `Success Behavior`
+- `Error Behavior`
 - `Problem`
 - `Solution`
 - `Scope In`
@@ -217,17 +219,35 @@ Ordonnées par dépendance (fondations d'abord).
 
 Ce paragraphe doit être assez précis pour qu'un agent frais puisse dire si l'implémentation tient la promesse, sans encore parler de fichiers, packages ou architecture.
 
+**Success Behavior :**
+Décrire les comportements observables qui prouvent que la feature réussit :
+- préconditions ou état de départ
+- action ou déclencheur
+- résultat visible pour l'utilisateur ou l'opérateur
+- effet système attendu : donnée persistée, statut mis à jour, événement envoyé, fichier créé, job lancé, etc.
+- preuve de succès : test, sanity check, log attendu, état final vérifiable
+
+Une action réussie doit produire un changement d'état observable. Un succès silencieux n'est acceptable que si la spec le justifie explicitement et explique comment l'utilisateur ou l'opérateur peut quand même confirmer le résultat.
+
+**Error Behavior :**
+Décrire les comportements attendus quand ça ne marche pas :
+- entrée invalide, droit manquant, ressource absente, dépendance externe en erreur, timeout, doublon, concurrence, ou état périmé selon le scope
+- message ou retour présenté à l'utilisateur/opérateur
+- effet système attendu : aucun changement, rollback, état `pending`, retry, compensation, journalisation, ou alerte
+- ce qui ne doit jamais arriver : donnée partielle incohérente, permission élargie, suppression non confirmée, secret loggué, side effect répété
+
+Une erreur doit produire une explication observable ou un état récupérable. Un échec silencieux n'est acceptable que si la spec le justifie explicitement et décrit le mécanisme de récupération ou d'observation.
+
 **Critères d'acceptation (Given/When/Then) :**
 ```markdown
 - [ ] CA N : Given [précondition], when [action], then [résultat attendu]
 ```
 
-Couvrir : promesse principale de la user story, happy path, erreurs, cas limites, intégrations, abus ou contournements probables si le flow est non trivial.
+Couvrir : promesse principale de la user story, `Success Behavior`, `Error Behavior`, cas limites, intégrations, abus ou contournements probables si le flow est non trivial.
 
 **Sections complémentaires :**
 - **Dépendances** : librairies, services, APIs nécessaires
 - **Links & Consequences** : systèmes/fichiers impactés, invariants, effets de bord attendus, validations transverses
-- **Documentation coherence** : docs/support/onboarding/pricing/changelog impacted, or `None, because ...`
 - **Stratégie de test** : unit, intégration, tests manuels
 - **Risques** : points sensibles identifiés (sécurité, perf, données)
 - **Documentation Coherence** : docs, README, guides, FAQ, onboarding, pricing, changelog, exemples ou support à aligner, ou `None, because ...`
@@ -283,6 +303,8 @@ Puis afficher la spec complète.
 **Si "Revue adversariale"** : prendre du recul et critiquer sa propre spec :
 - la `User Story` est-elle assez précise pour juger le succès ?
 - Le `Minimal Behavior Contract` couvre-t-il entrée, sortie, échec et edge case principal ?
+- `Success Behavior` dit-il clairement à quoi ressemble une réussite observable ?
+- `Error Behavior` dit-il clairement quoi faire en cas d'entrée invalide, échec partiel, dépendance indisponible ou état incohérent ?
 - Quelles hypothèses implicites pourraient casser dans un environnement réel ?
 - Les tâches sont-elles vraiment ordonnées par dépendance ?
 - Y a-t-il des cas limites non couverts dans les CA ?
