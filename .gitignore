@@ -16,3 +16,8 @@ ShipFlow/
 
 # Local Claude settings backups
 .claude/settings.json.bak-*
+
+# Runtime/build artifacts
+__pycache__/
+*.pyc
+tmp_shipflow*.sh
