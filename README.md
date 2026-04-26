@@ -115,6 +115,14 @@ Bug-first entrypoint:
 sf-fix -> (fix directly or spec-first path)
 ```
 
+Auth/browser diagnostic path:
+
+```text
+sf-auth-debug -> sf-fix or sf-start -> sf-verify
+```
+
+Use `sf-auth-debug` before guessing from static code when the bug involves Clerk, OAuth, Google login, YouTube OAuth, Convex auth propagation, cookies, callbacks, protected routes, or Flutter web auth bridges. It can use Playwright where a real browser flow is accessible, and it carries local reference docs for the auth stacks ShipFlow projects use most often.
+
 Fast thread recap:
 
 ```text

@@ -6,10 +6,14 @@
 - Dependency-free ShipFlow metadata linter for specs and project decision-contract documents
 - Skill-aligned artifact templates for specs, business context, brand context, audits, verification, readiness, review, research, and decision records
 - `sf-resume` — fast current-thread recap skill with task status bullets, close/keep-open verdict, and one critical reminder
+- `sf-auth-debug` — browser-auth diagnostic skill for Clerk, OAuth, Google login, YouTube OAuth, Convex auth propagation, sessions, callbacks, protected routes, and Playwright-based reproduction
+- Cross-project auth reference docs for the ContentFlow Flutter web ClerkJS bridge and the TubeFlow Next.js + Convex YouTube OAuth flow
 
 ### Changed
 - Existing Codex TUI spec migrated to the ShipFlow metadata frontmatter schema
 - Workflow documentation now links metadata doctrine to executable templates and linting
+- `sf-fix`, `sf-start`, `sf-verify`, and `sf-prod` now route auth/browser-flow uncertainty through `sf-auth-debug` when browser evidence is needed
+- Internal and public skill documentation now explain when to use `sf-auth-debug` and which auth references it carries
 
 ## [2026-04-25] - Contract metadata versioning across skills
 

@@ -18,6 +18,7 @@ Quick reference for the skill system, modes, and workflows.
 | Skill | Purpose | Arguments |
 |-------|---------|-----------|
 | `/sf-fix` | Bug-first intake and routing (direct fix vs spec-first) | `<bug description>` |
+| `/sf-auth-debug` | Browser-auth diagnosis for Clerk, OAuth, Google/YouTube, Convex, sessions, callbacks | `<bug/URL/flow>` |
 | `/sf-model` | Choose model, reasoning level, and fast/cheap fallback before execution | `<task description>` or `<spec path>` |
 | `/sf-tasks` | Track work, check off items, suggest next | `[focus area]` |
 | `/sf-priorities` | Re-rank by impact/effort matrix | `impact`, `effort`, `blockers`, `quick-wins` |
@@ -49,6 +50,7 @@ Quick reference for the skill system, modes, and workflows.
 | `/sf-status` | Cross-project git dashboard | (none) |
 
 Note: `/sf-verify` now includes guided next-step prompting when verdict is not ready (`corriger maintenant`, `repasser par spec`, `stop/reprendre`).
+Note: `/sf-auth-debug` is the required diagnostic path for auth bugs that need browser evidence before implementation.
 Note: `/sf-start` now reuses the `sf-model` routing matrix and can choose `single-agent` vs `multi-agent` execution with explicit file ownership and per-group model overrides.
 Note: `/sf-spec` → `/sf-ready` → `/sf-start` → `/sf-verify` now share a `User Story` contract and should ask targeted user questions whenever behavior, scope, or security is still ambiguous.
 
@@ -286,6 +288,7 @@ Provide explicit arguments and prompts don't appear:
 ### Fix a bug
 ```bash
 /sf-fix "short bug description"    # Triage + direct fix or route
+/sf-auth-debug "Google login returns to sign-in" # Reproduce auth flow and isolate the failure point
 # If local and clear -> fix now, then verify
 # If ambiguous/non-trivial -> /sf-spec -> /sf-ready -> /sf-start
 ```

@@ -47,6 +47,11 @@ Signals for `spec-first`:
 - auth/data/migration/API contract implications
 - likely edge cases or cross-domain impact
 
+If the task includes a known auth bug or a browser flow that is failing in reality:
+- keep `sf-start` as the execution owner
+- pull in `sf-auth-debug` logic before patching when browser evidence is needed to avoid coding blind
+- do not assume static code reading is enough for Clerk/OAuth/session issues
+
 If any unresolved question could change permissions, data exposure, tenant boundaries, money movement, destructive behavior, external side effects, or workflow integrity, force `spec-first`.
 
 If the triage is borderline (signals are mixed), use **AskUserQuestion**:
@@ -68,6 +73,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
 
 ### Step 3 — Load context, derive execution contract, and track task (silent)
 
+- Read `../references/documentation-freshness-gate.md` when the task depends on framework, SDK, service, API, auth/session, build, migration, cache, routing, or integration behavior. Preserve the gate verdict in the execution contract.
 - Si la tâche est `spec-first`, préférer une exécution sur contexte frais :
   - lancer un subagent sans historique si c'est possible
   - sinon demander explicitement à l'utilisateur d'ouvrir un nouveau thread avant de continuer
@@ -84,6 +90,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
   - invariants and non-goals
   - linked systems / consequences to revalidate
   - documentation surfaces to update or explicitly leave unchanged
+  - fresh external docs verdict when the task depends on external documented behavior: dependency/service, local version when available, Context7 or official docs source, and whether the implementation path is supported
   - abuse cases / misuse cases and security constraints when present
   - validation commands and stop conditions
 - For every business or technical contract listed in `depends_on` (`BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, docs API, architecture, pricing, personas, GTM docs, onboarding/support docs):
@@ -92,6 +99,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
   - stop and route back to `/sf-ready` if the current document is `stale`, has a newer incompatible `artifact_version`, or contradicts the spec
   - ask the user or reroute if a missing version would change product promise, permissions, pricing, data behavior, API contract, architecture, security posture, or documentation obligations
 - If a direct task has no spec but clearly depends on business or technical docs, record a mini-contract with the document names and current versions/status when available.
+- If a direct task has no spec but triggers the Documentation Freshness Gate, record the dependency/version, Context7 or official docs source, relevant rule, and verdict before editing.
 - If a direct task has no spec, still form a lightweight mini-contract before editing:
   - one behavioral paragraph: accepted input/trigger, output/result, failure behavior, likely missed edge case
   - success behavior: what must be observable when the change works
@@ -113,6 +121,7 @@ If `spec-first` and no matching `Status: ready` spec exists:
 - If the remaining ambiguity is product-meaningful or security-meaningful, ask the user instead of "picking a sensible default"
 - Read only the files needed to implement plus the linked systems that must be sanity-checked
 - Include associated tests or entry points
+- If the task touches auth, redirects, protected pages, callback flows, or browser session state, include the relevant login/callback entrypoints and the minimum routes needed for `sf-auth-debug`
 - Update task tracking to `🔄 in progress` in master TASKS.md
 - Update local TASKS.md too when present
 - Treat the TASKS content loaded in Context as informational only.
@@ -194,6 +203,7 @@ Implementation constraints:
 - preserve the spec's dependency/version context while coding; do not silently implement against a newer or stale `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, API doc, or architecture doc than the spec names
 - keep documentation coherent with feature behavior: update docs, README, guides, examples, FAQ, onboarding, pricing or support copy when the contract names them
 - preserve abuse-case and security constraints named in the spec
+- preserve fresh external docs constraints from the execution contract; if current docs contradict the intended implementation, stop and reroute instead of coding from memory
 - avoid speculative refactors unrelated to the task
 - if a new side effect appears outside the contract, stop and reroute instead of improvising
 - if scope expands materially, stop and reroute to spec-first
@@ -205,6 +215,7 @@ Run focused validation relevant to the modified area:
 - include at least one validation that the main user story outcome is actually delivered
 - validate `Success Behavior` and `Error Behavior` when the contract names them; if an error path cannot be exercised, state the gap explicitly
 - include a sanity check that success is not silent and failure is not silent unless explicitly justified by the contract
+- when the user story depends on a browser auth flow or protected app path, run or emulate `sf-auth-debug` logic to confirm the observable flow in a real browser
 - targeted tests if available
 - quick lint/type check for touched modules when practical
 - syntax check for touched shell scripts if relevant
@@ -244,6 +255,9 @@ Linked checks:
 
 Documentation coherence:
 - [docs updated / not impacted because ... / gap]
+
+Fresh external docs:
+- [checked / not needed / gap / conflict] — [dependency/version/source]
 
 Metadata / version context:
 - Spec: [metadata_schema_version / artifact_version / status]

@@ -49,6 +49,7 @@ Si une spec existe, extraire explicitement :
 - `Links & Consequences`
 - `Documentation Coherence`
 - `Risks`
+- toute preuve de Documentation Freshness Gate : dépendance/service, version locale, source Context7 ou docs officielles, verdict `fresh-docs checked/not needed/gap/conflict`
 
 La vérification doit juger le résultat contre cette promesse, pas seulement contre la liste des tâches.
 
@@ -95,6 +96,11 @@ Si une spec existe, vérifier explicitement `Success Behavior` et `Error Behavio
 
 **Résultat** : success behavior pass/partial/fail/not demonstrated ; error behavior pass/partial/fail/not demonstrated
 
+Si le scope touche à l'auth navigateur, aux redirects, aux callbacks, aux pages protégées, ou à la persistance de session:
+- ne pas se contenter d'une preuve par lecture de code ou tests unitaires si une vérification navigateur est faisable
+- utiliser ou émuler `sf-auth-debug` pour confirmer le comportement observable
+- si cette vérification n'a pas été faite, le rapport doit le signaler explicitement comme gap de preuve
+
 ### Step 3 — Vérifier les metadata et versions de contrat
 
 Vérifier que les artefacts ShipFlow utilisés pour implémenter le travail sont synchronisés.
@@ -125,6 +131,21 @@ Vérifier que les artefacts ShipFlow utilisés pour implémenter le travail sont
 - Le rapport doit dire : `implemented against current docs`, `implemented against outdated docs`, `dependency version unknown`, ou `not applicable`.
 
 **Résultat** : metadata valides / dette metadata / contrat documentaire périmé avec preuves
+
+### Step 3.5 — Vérifier la documentation officielle actuelle
+
+Appliquer `../references/documentation-freshness-gate.md` au travail vérifié.
+
+Si le diff, la spec ou la description dépend d'un framework, SDK, service, API, auth/session, build, migration, cache, routing ou intégration externe :
+- vérifier que la dépendance et sa version locale ont été identifiées quand c'est possible
+- vérifier qu'une source Context7 ou une documentation officielle web actuelle a été consultée
+- vérifier que l'implémentation suit le contrat documenté ou explique explicitement une divergence
+- signaler `WARNING` si la preuve documentaire manque pour un changement de framework, SDK, API, build ou intégration
+- signaler `CRITICAL` si le manque ou le conflit touche auth, sécurité, permissions, données, paiement, migrations, tenant boundaries, webhooks ou intégration externe critique
+
+Si le changement est entièrement local, noter `fresh-docs not needed` avec une justification courte.
+
+**Résultat** : `fresh-docs checked` / `fresh-docs not needed` / `fresh-docs gap` / `fresh-docs conflict`
 
 ### Step 4 — Vérifier la complétude
 
@@ -182,6 +203,10 @@ Quand une spec ou le diff révèle des systèmes liés, vérifier explicitement 
 - docs, README, guides, exemples, FAQ, onboarding, pricing, changelog, support, screenshots si la feature change
 
 Si une conséquence attendue n'a pas été vérifiée ou si un système lié a dérivé, le signaler au minimum en WARNING, voire CRITICAL si cela casse le contrat.
+
+Quand le système lié principal est un flow d'auth réel:
+- vérifier si une reproduction navigateur a été faite
+- sinon recommander `/sf-auth-debug [scope]` avant de conclure que le travail est prêt à ship
 
 **Résultat** : liste des conséquences vérifiées vs oubliées avec preuves
 
@@ -318,6 +343,13 @@ Ajouter ensuite un bloc workflow explicite :
 - Dependency status: [current / outdated / unknown / not applicable]
 - Outdated contracts: [BUSINESS.md, BRANDING.md, GUIDELINES.md, API docs, architecture docs, ...]
 - Impact: [none / revalidation required / blocks ship]
+```
+
+```text
+### Fresh External Docs
+- Verdict: [fresh-docs checked / fresh-docs not needed / fresh-docs gap / fresh-docs conflict]
+- Evidence: [dependency/version/source or local-only justification]
+- Impact: [none / warning / blocks ship]
 ```
 
 ```text

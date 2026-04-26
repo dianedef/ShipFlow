@@ -439,6 +439,8 @@ Typical routed outcomes:
 - direct: `sf-fix -> sf-verify -> sf-end`
 - spec-first: `sf-spec -> sf-ready -> sf-start -> sf-verify -> sf-end`
 
+When the bug is auth or browser-flow related, run `sf-auth-debug` before coding from theory. It consumes the bug report or spec, reproduces with Playwright where possible, and isolates failures across Clerk, OAuth, Google login, YouTube OAuth, Convex auth propagation, cookies, callbacks, protected routes, and Flutter web auth bridges. Its output should route back into `sf-fix`, `sf-start`, or `sf-verify` with evidence rather than guesses.
+
 ### 1. `sf-explore`
 
 Use `sf-explore` when the problem is still fuzzy:

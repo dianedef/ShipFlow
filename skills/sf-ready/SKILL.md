@@ -102,6 +102,7 @@ Contrôler :
 - `artifact: spec`, `metadata_schema_version`, `artifact_version`, `source_skill`, `created`, `updated`, `status`, `scope`, `risk_level`, `security_impact`, `docs_impact` sont renseignés
 - `depends_on` liste les versions des docs business/techniques utilisées par la spec, ou explicite `unknown` pendant migration
 - aucune dépendance business/technique utilisée par la spec n'est connue comme `stale` sans revue explicite
+- la Documentation Freshness Gate de `../references/documentation-freshness-gate.md` est satisfaite quand la spec dépend d'un framework, SDK, service, API, auth, build, migration ou intégration externe : source Context7 ou docs officielles actuelle nommée, version locale notée si disponible, et pas de `fresh-docs gap` non assumé
 - `Status` est `draft` ou `reviewed`, pas déjà `ready` sans vérification
 - aucun `TBD`, `TODO`, placeholder ou formulation vague critique
 - `Open Questions` est `None`
@@ -155,6 +156,7 @@ Critiquer la spec comme si tu voulais :
 - une conséquence hors des fichiers principaux est-elle oubliée ?
 - une page de doc, FAQ, onboarding, pricing, screenshot, exemple ou support devient-elle fausse après la feature ?
 - le test plan permet-il vraiment à `sf-verify` de juger la conformité ?
+- la spec s'appuie-t-elle sur un comportement externe récent sans preuve de docs officielles actuelles ?
 - le flow peut-il être bypassé par saut d'étape, replay, double soumission, ordre invalide, état périmé ou entrée concurrente ?
 - une hypothèse "UI = sécurité" existe-t-elle alors qu'un contrôle serveur ou backend devrait être requis ?
 - la spec suppose-t-elle qu'un acteur restera honnête, qu'un identifiant sera valide, qu'une donnée externe sera propre, ou qu'un ordre d'événements sera respecté ?
@@ -221,6 +223,7 @@ Checklist:
 - Success behavior: [ok / fail]
 - Error behavior: [ok / fail]
 - Documentation coherence: [ok / fail]
+- Fresh external docs: [ok / fail / not applicable]
 - Execution notes: [ok / fail]
 - Minimal behavior contract: [ok / fail]
 - Adversarial review: [ok / fail]
@@ -256,6 +259,7 @@ Fresh context:
 - Toujours faire une passe "comment est-ce que ça casse ?" avant de conclure `ready`
 - Toujours expliciter le niveau de risque cyber sécurité, même si l'impact est nul ou faible
 - Toujours vérifier que les docs actives restent alignées quand une feature change
+- Toujours vérifier la Documentation Freshness Gate quand la spec dépend d'un framework, SDK, service, API, auth, build, migration ou intégration externe
 - Si une question manquante change le contrat ou la sécurité, bloquer au lieu de supposer
 - Donner des corrections actionnables, pas des critiques vagues
 - Refuser une spec qui dépend de clarifications futures pour être implémentée proprement

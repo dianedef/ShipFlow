@@ -31,6 +31,21 @@ Elle intervient quand le sujet touche à l'auth réelle côté navigateur:
 Le but n'est pas de "faire passer Playwright à tout prix".
 Le but est de localiser précisément le point de rupture et de produire un diagnostic exploitable par la suite du workflow.
 
+Références locales à charger selon le contexte:
+- `references/clerk.md` pour Clerk, Next.js, middleware, redirects, sessions, Google social connection via Clerk
+- `references/google-oauth.md` pour les règles OAuth Google, redirect URI, state, consent screen, limites d'automatisation
+- `references/convex-clerk.md` pour les apps qui propagent l'identité Clerk vers Convex
+- `references/playwright-auth.md` pour la méthode de preuve navigateur, les stratégies de session et les règles de secret hygiene
+- `references/astro-clerk.md` pour les sites Astro avec `@clerk/astro`, SSR, middleware et Account Portal
+- `references/flutter-clerk-convex.md` pour les apps Flutter avec Clerk beta et accès Convex
+- `references/python-convex.md` pour scripts Python, jobs, imports et clients Convex
+- `references/sdk-policy.md` pour choisir stable/beta/non-officiel dans le stack ShipFlow
+- `references/flutter-web-clerkjs-bridge.md` pour le pattern ContentFlow: Flutter web + routes HTML ClerkJS + bridge Dart
+- `/home/claude/shipflow/skills/references/flutter-web-clerkjs-auth-pattern.md` comme documentation technique transverse à réutiliser dans les autres repos Flutter
+- `/home/claude/shipflow/skills/references/tubeflow-youtube-oauth-nextjs-convex-pattern.md` comme documentation technique transverse pour YouTube OAuth via Next.js + Convex
+
+Ne charger que les références utiles au bug courant. Si une info de référence est critique et peut avoir changé récemment, vérifier ponctuellement la documentation officielle, puis mettre à jour la référence locale si nécessaire.
+
 Les snapshots de `TASKS.md` lus ici sont informatifs seulement.
 `sf-auth-debug` ne doit jamais modifier `TASKS.md`, `AUDIT_LOG.md` ou `PROJECTS.md`.
 
@@ -102,6 +117,19 @@ Lire seulement les fichiers les plus pertinents avant d'agir:
 - guards serveur ou client
 - variables d'environnement liées à auth
 - pages ou composants du flow cassé
+
+Charger les références locales pertinentes avant de conclure:
+- Clerk ou `@clerk/*` détecté -> lire `references/clerk.md`
+- Google OAuth direct ou social login Google -> lire `references/google-oauth.md`
+- Convex avec Clerk ou session backend Convex -> lire `references/convex-clerk.md`
+- Diagnostic Playwright, session persistée, preuve navigateur ou auth automatisée -> lire `references/playwright-auth.md`
+- Astro ou `@clerk/astro` détecté -> lire `references/astro-clerk.md`
+- Flutter, Dart, `clerk_flutter`, `clerk_auth`, ou `convex_dart` détecté -> lire `references/flutter-clerk-convex.md`
+- Flutter web avec ClerkJS, `web_auth/`, `clerk-runtime.js`, `/sign-in`, `/sso-callback`, ou bridge JS/Dart -> lire `references/flutter-web-clerkjs-bridge.md`
+- Implémentation ou correction d'auth Flutter web dans un autre repo -> lire aussi `/home/claude/shipflow/skills/references/flutter-web-clerkjs-auth-pattern.md`
+- YouTube OAuth, Google API scopes, `refresh_token`, `/api/auth/youtube`, ou connexion YouTube depuis Flutter -> lire aussi `/home/claude/shipflow/skills/references/tubeflow-youtube-oauth-nextjs-convex-pattern.md`
+- Python script/job qui appelle Convex -> lire `references/python-convex.md`
+- Choix de SDK, dépendance beta, ou package non-officiel -> lire `references/sdk-policy.md`
 
 Chercher notamment:
 - URL de callback attendue

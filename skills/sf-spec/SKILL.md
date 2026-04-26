@@ -61,6 +61,7 @@ Les snapshots de `TASKS.md` lus ici sont informatifs seulement.
 - Chercher des docs existantes (CLAUDE.md, README, docs/)
 - Si l'utilisateur mentionne du code spécifique, scanner les fichiers concernés
 - Repérer le stack technique, les patterns, la structure du projet
+- Si la feature ou le bug dépend d'un framework, SDK, service, API, auth, build, migration, cache, routing ou intégration externe, appliquer `../references/documentation-freshness-gate.md` avant de figer l'approche.
 
 **Poser des questions informées** — pas des questions génériques, mais des questions ancrées dans ce qu'on a trouvé :
 - "Le `AuthService` valide dans le controller — on suit ce pattern ou on crée un validateur dédié ?"
@@ -115,6 +116,7 @@ Explorer le codebase en profondeur pour ancrer la spec dans la réalité techniq
 - **Entrypoints & dépendants** : qui appelle la zone, quelles routes/pages/jobs/tests/consommateurs seront touchés
 - **Liens & conséquences** : contrats, side effects, invariants, migrations, analytics/SEO/auth/perf à préserver
 - **Cohérence documentaire** : docs, README, guides, FAQ, changelog, exemples, screenshots, onboarding ou support à mettre à jour si la feature change
+- **Fresh external docs** : dépendances externes dont le comportement gouverne la spec, version locale quand disponible, source Context7 ou docs officielles consultée, ou justification `fresh-docs not needed`
 - **Patterns de test** : comment les tests sont structurés
 
 **Si aucun code existant** (clean slate) :
@@ -172,6 +174,7 @@ Règle de dépendance documentaire :
 - si la spec utilise `BUSINESS.md`, `BRANDING.md`, `GUIDELINES.md`, docs API, architecture, pricing, persona, ou tout autre contrat ShipFlow, renseigner la version dans `depends_on`
 - si la version est absente pendant une migration, utiliser `artifact_version: unknown` et `required_status: unknown`, puis signaler le manque comme dette metadata/docs
 - si une dépendance business/technique est `stale`, la spec ne peut pas passer `ready` sans revue explicite
+- si la spec dépend d'un contrat externe documenté (framework, SDK, service, API, auth, build, migration, intégration), renseigner dans `Dependencies` ou `Execution Notes` la source officielle actuelle consultée via Context7 ou docs officielles web, ainsi que le verdict `fresh-docs checked`, `fresh-docs gap`, `fresh-docs conflict` ou `fresh-docs not needed`
 
 Utiliser ces titres de sections exacts pour que `/sf-ready` et `/sf-verify` puissent relire la spec mécaniquement :
 - `Title`
@@ -252,6 +255,7 @@ Couvrir : promesse principale de la user story, `Success Behavior`, `Error Behav
 - **Risques** : points sensibles identifiés (sécurité, perf, données)
 - **Documentation Coherence** : docs, README, guides, FAQ, onboarding, pricing, changelog, exemples ou support à aligner, ou `None, because ...`
 - **Execution Notes** : 3-5 fichiers à lire d'abord, approche d'implémentation en étapes avant code, contraintes explicites (packages à utiliser/éviter, patterns existants, flux de données, abstractions à éviter, limites de scope), ordre d'exécution, commandes de validation, stop conditions / cas de reroute
+- **Fresh External Docs** : inclure dans `Dependencies` ou `Execution Notes` les docs officielles consultées quand `../references/documentation-freshness-gate.md` se déclenche, ou `fresh-docs not needed` si le changement est entièrement local
 
 Quand le scope touche auth, permissions, données, intégrations, paiement, admin, contenu riche, prompts, fichiers, ou automatisations, exiger dans la spec :
 - hypothèses de confiance
@@ -351,6 +355,7 @@ Prochaine étape :
 - **User story d'abord** — ne jamais partir directement en solution sans expliciter la promesse utilisateur
 - **Questions décisives** — si une réponse change le comportement, le scope ou la sécurité, demander avant d'écrire la spec finale
 - **Docs dans le scope** — toute feature qui change un comportement utilisateur doit expliciter les docs à aligner ou justifier pourquoi il n'y en a pas
+- **Docs officielles actuelles** — ne pas écrire une spec basée uniquement sur mémoire modèle quand l'approche dépend d'un framework, SDK, service, API, auth, build, migration ou intégration externe ; appliquer la Documentation Freshness Gate
 - **Autonome** — la spec doit contenir TOUT le contexte nécessaire pour implémenter
 - **Pragmatique** — adapter la profondeur au scope (pas de spec de 50 tâches pour un bug fix)
 - **Conversationnel** — c'est un dialogue, pas un formulaire. Suivre les fils intéressants.

@@ -36,6 +36,7 @@ Always answer in French unless the user asks otherwise.
 
 Keep the whole answer concise:
 - 3 to 5 bullet points maximum for tasks
+- one short commits section
 - one short closure status line
 - one short "À ne pas oublier" line
 
@@ -46,6 +47,9 @@ Use this structure:
 - [Terminé|En cours|Planifié] Tâche courte accomplie ou prévue.
 - [Terminé|En cours|Planifié] Tâche courte accomplie ou prévue.
 - [Terminé|En cours|Planifié] Tâche courte accomplie ou prévue.
+
+**Commits effectués**
+- Aucun commit effectué dans cette conversation.
 
 **Statut**: Tu peux fermer / Garde ouvert / À vérifier avant de fermer.
 
@@ -65,6 +69,29 @@ Use:
 - `Tu peux fermer` when all meaningful tasks are completed and no important unresolved action remains.
 - `Garde ouvert` when work is actively incomplete, blocked, or depends on the current context.
 - `À vérifier avant de fermer` when most work is done but there is a missing confirmation, test, commit, deployment, decision, or follow-up.
+
+## Commits
+
+Always include the `Commits effectués` section in the final summary.
+
+Use only commits that are explicitly visible in the current conversation context. Do not run Git commands, inspect files, or infer commits from completed work.
+
+If no commit is visible, write exactly:
+
+```markdown
+**Commits effectués**
+- Aucun commit effectué dans cette conversation.
+```
+
+If one or more commits were made in the conversation, list only the short commit hash and 2 to 3 descriptive words:
+
+```markdown
+**Commits effectués**
+- `a1b2c3d` Résumé bref
+- `e4f5g6h` Fix tests
+```
+
+Do not include commit messages in full, branch names, authors, dates, or long explanations.
 
 ## What Counts as "À ne pas oublier"
 

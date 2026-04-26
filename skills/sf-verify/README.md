@@ -20,6 +20,7 @@ It complements technical checks with product, documentation, and security-minded
 - when a feature changed user-facing behavior or error handling
 - when a spec exists and you want to verify the build against the contract
 - when auth, payments, data, docs, or dependencies may be involved
+- when protected routes or browser auth flows need real evidence before you call the work done
 
 ## What You Give It
 
@@ -34,6 +35,7 @@ It complements technical checks with product, documentation, and security-minded
 - focused technical checks where practical
 - explicit warnings when behavior is only partially demonstrated
 - guidance on what to fix before shipping
+- a push toward `sf-auth-debug` when auth behavior was not proven in a real browser
 
 ## Typical Examples
 
@@ -50,5 +52,6 @@ It complements technical checks with product, documentation, and security-minded
 ## Related Skills
 
 - `sf-check` for broader technical validation
+- `sf-auth-debug` when ship-readiness depends on a real Clerk, OAuth, or session-flow confirmation
 - `sf-spec` and `sf-ready` to strengthen the contract before implementation
 - `sf-ship` once verification is good enough to push

@@ -4,7 +4,7 @@
 
 ## What It Does
 
-`sf-resume` gives a compact summary of the current conversation only. It lists the main completed, in-progress, or planned items, then tells you whether the thread can be closed or whether something important would be lost.
+`sf-resume` gives a compact summary of the current conversation only. It lists the main completed, in-progress, or planned items, notes any commits made in the conversation when they are visible, then tells you whether the thread can be closed or whether something important would be lost.
 
 For solo founders working across many chats, this is the lightweight memory aid that prevents loose ends from disappearing.
 
@@ -28,6 +28,7 @@ For solo founders working across many chats, this is the lightweight memory aid 
 ## What You Get Back
 
 - a short bullet summary
+- a short commits section, either `Aucun commit effectué dans cette conversation.` or short hashes with 2-3 descriptive words
 - a closure verdict
 - one “do not forget” item if something important remains
 
@@ -42,6 +43,7 @@ For solo founders working across many chats, this is the lightweight memory aid 
 ## Limits
 
 - It only uses the visible thread, not external files or repo state.
+- It does not inspect Git history; commit information is reported only when visible in the conversation.
 - It is a memory snapshot, not a verification pass.
 - If the thread itself is ambiguous, the summary will reflect that uncertainty.
 

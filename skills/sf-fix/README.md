@@ -20,6 +20,7 @@ That matters because a “quick fix” can easily create a worse product problem
 - when you want rapid triage before opening a bigger workstream
 - when it is unclear whether the fix is truly local
 - when a small bug may hide a contract or security decision
+- when an auth or protected-route bug may need browser-level diagnosis before patching
 
 ## What You Give It
 
@@ -32,6 +33,7 @@ That matters because a “quick fix” can easily create a worse product problem
 - a short rationale tied to the user story
 - either a local fix or an exact next-step command
 - explicit product, documentation, and security considerations
+- a reroute to `sf-auth-debug` when the bug needs real browser-auth evidence
 
 ## Typical Examples
 
@@ -48,5 +50,6 @@ That matters because a “quick fix” can easily create a worse product problem
 ## Related Skills
 
 - `sf-spec` when the bug needs a clear contract first
+- `sf-auth-debug` when the broken behavior lives in Clerk, OAuth, redirects, or browser session state
 - `sf-start` to execute the approved fix path
 - `sf-verify` after a direct fix on important flows

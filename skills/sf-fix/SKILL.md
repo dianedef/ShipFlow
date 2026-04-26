@@ -73,12 +73,20 @@ Prefer decision-forcing questions such as:
 
 Read only the 3-5 most relevant files and classify the bug as `direct` or `spec-first`.
 
+Apply the shared Documentation Freshness Gate from `../references/documentation-freshness-gate.md` during triage when the bug may depend on current framework, SDK, service, API, auth/session, build, migration, cache, routing, or integration behavior. Local repo versions and patterns come first; Context7 official docs come next; official web docs are the fallback.
+
 During triage, verify four things before choosing `direct`:
 - **User story fit**: the expected fix is clearly tied to the promised user outcome
 - **Product coherence**: the intended behavior matches adjacent flows, copy, permissions, and existing conventions
 - **Documentation coherence**: the bug fix does not leave docs, FAQ, examples, onboarding, changelog, pricing or support copy describing the old behavior
+- **Fresh external docs**: if the fix depends on external documented behavior, current official docs support the chosen path, or the task is rerouted/flagged as `fresh-docs gap` or `fresh-docs conflict`
 - **Security impact**: the fix does not rely on UI-only protection or create a gap in auth, authz, validation, or data exposure
 - **Blast radius**: linked systems and regressions are still local enough for a direct fix
+
+If the bug touches browser authentication, protected routes, OAuth redirects, Clerk session state, callback handling, or "works in code but fails in browser" behavior:
+- prefer using `sf-auth-debug` as the diagnostic layer before or during the fix
+- use it to locate the exact failure step instead of inferring the auth break only from static code
+- keep `sf-fix` as the router and execution owner; `sf-auth-debug` provides evidence, not a separate workflow
 
 Force `spec-first` if any unresolved point could change:
 - who can see/do the action
@@ -114,6 +122,8 @@ If `direct`:
 - if the expected row or section moved, re-read once and recompute; if it is still ambiguous, stop and ask the user
 - run relevant checks for the changed area
 - run at least one user-story sanity check
+- include the Documentation Freshness Gate verdict when it was triggered, especially the dependency/version and Context7 or official docs source that influenced the fix
+- if the bug involves auth, redirects, protected pages, or session behavior in the browser, run or emulate `sf-auth-debug` logic to reproduce and re-check the broken flow
 - run a documentation coherence check when the bug changes visible behavior, API behavior, permissions, pricing, integration behavior, or support expectations
 - run at least one quick coherence/security sanity check when the bug touches auth, data, workflow, external effects, or non-trivial state
 - run `sf-verify` logic after the fix to confirm closure
@@ -127,7 +137,8 @@ If `spec-first`:
 
 If `diagnostic only`:
 - do not code
-- report the suspected root cause and concrete next step command
+- if the bug is auth/browser-flow related, prefer `/sf-auth-debug [bug title]`
+- otherwise report the suspected root cause and concrete next step command
 
 ### Step 4 — Report
 
@@ -142,6 +153,7 @@ User story: [actor + expected outcome]
 Clarifications asked: [none / short list]
 Product coherence: [ok / risk]
 Documentation coherence: [ok / risk / not impacted]
+Fresh external docs: [checked / not needed / gap / conflict]
 Security posture: [ok / risk]
 Action taken: [fixed directly / routed]
 

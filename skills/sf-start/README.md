@@ -19,6 +19,7 @@ The skill is designed to preserve the promised user outcome, not just complete a
 - when you want to begin a task and expect code changes now
 - when a tracker item should become implementation work
 - when you want automatic routing between direct execution and spec-first flow
+- when implementation depends on reproducing a broken auth or protected browser flow before fixing it
 
 ## What You Give It
 
@@ -33,6 +34,7 @@ The skill is designed to preserve the promised user outcome, not just complete a
 - focused validation results tied to the user story
 - a concise execution report with files changed, checks run, and documentation impact
 - or a reroute to `sf-spec` and `sf-ready` if the contract is not strong enough
+- when needed, an explicit diagnostic pass through `sf-auth-debug` before or during the implementation
 
 ## Typical Examples
 
@@ -50,5 +52,6 @@ The skill is designed to preserve the promised user outcome, not just complete a
 
 - `sf-spec` to define non-trivial work
 - `sf-ready` to validate the spec contract
+- `sf-auth-debug` when the task depends on reproducing a Clerk, OAuth, or browser-session failure
 - `sf-verify` to judge whether the finished work is ready to ship
 - `sf-ship` once the implementation is ready to commit and push

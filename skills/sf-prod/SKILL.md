@@ -118,6 +118,10 @@ Quand c'est faisable sans inventer de scénario fragile, ajouter un check de coh
 - vérifier qu'on touche bien le domaine de prod attendu
 - vérifier un marqueur simple de contenu si la page principale doit afficher un titre ou un mot-clé connu
 
+Si la release concerne l'auth, une zone protégée, un dashboard privé, ou un callback OAuth:
+- signaler qu'un `200` public ne prouve pas le flow principal
+- recommander un passage `sf-auth-debug` ou une vérification Playwright ciblée si le doute principal porte sur login, session ou redirect
+
 Si la nature de la release rend le health check insuffisant, dire explicitement ce qui n'a pas été vérifié au lieu de conclure trop fort.
 
 ### Step 4 — En cas d'erreur : accéder aux logs
@@ -222,3 +226,4 @@ Dans tous les cas, ajouter une ligne `Hypothèses / risques restants` dès qu'un
 - Compatible Vercel, Netlify, et tout service qui publie des GitHub commit statuses
 - Ne jamais déclarer "prod OK" si seuls des signaux partiels ont été vérifiés. Préférer une conclusion précise du type : "deploy vert et URL répond, mais validation fonctionnelle/sécurité partielle".
 - Si la release semble sensible (auth, paiement, données privées, permissions, multi-tenant, webhooks, admin), être explicite sur l'absence éventuelle de preuve côté sécurité ou cohérence produit et recommander `/sf-verify` ou une vérification manuelle ciblée.
+- Si le risque principal est un flow d'auth navigateur, recommander explicitement `/sf-auth-debug [URL ou bug]`.
