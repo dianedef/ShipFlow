@@ -21,6 +21,9 @@ DEFAULT_TARGETS = (
     "CONTEXT-FUNCTION-TREE.md",
     "BUSINESS.md",
     "BRANDING.md",
+    "PRODUCT.md",
+    "ARCHITECTURE.md",
+    "GTM.md",
     "GUIDELINES.md",
 )
 VALID_STATUSES = {"draft", "reviewed", "ready", "active", "stale", "superseded"}
@@ -52,6 +55,9 @@ ARTIFACT_REQUIRED = {
     "spec": {"user_story", "linked_systems"},
     "business_context": {"target_audience", "value_proposition", "business_model", "market", "next_review"},
     "brand_context": {"brand_voice", "trust_posture", "next_review"},
+    "product_context": {"target_user", "user_problem", "desired_outcomes", "non_goals", "next_review"},
+    "architecture_context": {"linked_systems", "external_dependencies", "invariants", "next_review"},
+    "gtm_context": {"target_segment", "offer", "channels", "proof_points", "next_review"},
     "technical_guidelines": {"linked_systems", "next_review"},
     "audit_report": {"domains", "issue_counts"},
     "verification_report": {"verified_outcomes", "assumptions"},
@@ -121,7 +127,14 @@ def should_lint(path: Path, fields: dict[str, str], all_markdown: bool) -> bool:
         return True
     if fields.get("metadata_schema_version") or fields.get("artifact_version"):
         return True
-    if path.name in {"BUSINESS.md", "BRANDING.md", "GUIDELINES.md"}:
+    if path.name in {
+        "BUSINESS.md",
+        "BRANDING.md",
+        "PRODUCT.md",
+        "ARCHITECTURE.md",
+        "GTM.md",
+        "GUIDELINES.md",
+    }:
         return True
     if "specs" in path.parts:
         return True

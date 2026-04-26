@@ -40,6 +40,8 @@ Ce fichier est le point d'entree rapide pour un agent qui arrive dans le repo. I
 - Si la tache touche les tunnels SSH locaux, lire `local/local.sh`, `local/dev-tunnel.sh`, puis `CONTEXT-FUNCTION-TREE.md`.
 - Si la tache touche les skills, lire `README.md`, `shipflow-spec-driven-workflow.md`, puis les `skills/*/SKILL.md` concernes.
 - Si la tache touche la metadata des docs, lire `shipflow-metadata-migration-guide.md`, `tools/shipflow_metadata_lint.py`, puis `skills/sf-docs/SKILL.md`.
+- Si la tache touche produit, audience, priorites ou scope, lire `BUSINESS.md`, `PRODUCT.md`, puis `GTM.md` si la demande touche la promesse publique.
+- Si la tache touche architecture ou conventions techniques, lire `ARCHITECTURE.md`, `GUIDELINES.md`, puis `CONTEXT.md`.
 
 ## Context Docs
 
@@ -48,6 +50,12 @@ Ce fichier est le point d'entree rapide pour un agent qui arrive dans le repo. I
 - `CONTEXT-FUNCTION-TREE.md`: arbre de fonctions des scripts principaux.
 - `shipflow-spec-driven-workflow.md`: doctrine de travail spec-first et artefacts.
 - `shipflow-metadata-migration-guide.md`: doctrine de migration frontmatter.
+- `BUSINESS.md`: contrat business.
+- `PRODUCT.md`: contrat produit.
+- `BRANDING.md`: contrat de marque.
+- `GTM.md`: contrat de promesse publique et de distribution.
+- `ARCHITECTURE.md`: contrat de structure technique.
+- `GUIDELINES.md`: conventions techniques et de contribution.
 
 ## Rules
 

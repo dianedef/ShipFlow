@@ -42,7 +42,10 @@ Official migration scope for legacy adoption:
 - `AGENT.md` when it is the active agent entrypoint
 - `CONTEXT.md` and promoted specialized context docs when they are part of the official project context layer
 - `BUSINESS.md`
+- `PRODUCT.md`
 - `BRANDING.md`
+- `GTM.md`
+- `ARCHITECTURE.md`
 - `GUIDELINES.md`
 - `specs/*.md`
 
@@ -68,7 +71,10 @@ If `shipflow_data` needs visibility, reference the artifact. Do not create a sec
 Metadata is required for ShipFlow decision artifacts, including:
 
 - `BUSINESS.md`
+- `PRODUCT.md`
 - `BRANDING.md`
+- `GTM.md`
+- `ARCHITECTURE.md`
 - `GUIDELINES.md`
 - files in `specs/`
 - research reports
@@ -84,7 +90,10 @@ For legacy bulk migration, keep the official default scope narrower:
 
 - active context docs (`AGENT.md`, `CONTEXT.md`, promoted `CONTEXT-*` docs)
 - `BUSINESS.md`
+- `PRODUCT.md`
 - `BRANDING.md`
+- `GTM.md`
+- `ARCHITECTURE.md`
 - `GUIDELINES.md`
 - `specs/*.md`
 
@@ -194,7 +203,10 @@ For a migrated legacy file:
 Artifact-specific conservative defaults are recommended:
 
 - `BUSINESS.md` -> `artifact: business_context`
+- `PRODUCT.md` -> `artifact: product_context`
 - `BRANDING.md` -> `artifact: brand_context`
+- `GTM.md` -> `artifact: gtm_context`
+- `ARCHITECTURE.md` -> `artifact: architecture_context`
 - `GUIDELINES.md` -> `artifact: technical_guidelines`
 - `specs/*.md` -> `artifact: spec`
 

@@ -51,6 +51,8 @@ ShipFlow combine deux couches :
 - `tools/shipflow_metadata_lint.py`: linter des frontmatters ShipFlow.
 - `shipflow-spec-driven-workflow.md`: doctrine de workflow.
 - `shipflow-metadata-migration-guide.md`: doctrine de migration metadata.
+- `BUSINESS.md`, `PRODUCT.md`, `BRANDING.md`, `GTM.md`: contrats business, produit et promesse publique.
+- `ARCHITECTURE.md`, `GUIDELINES.md`: contrats structurels et techniques.
 
 ## Core Flows
 
@@ -139,6 +141,8 @@ Fast paths existent aussi :
 - Changer les tunnels locaux : `local/local.sh` et `local/dev-tunnel.sh`.
 - Changer le workflow d'agent : `skills/` + `shipflow-spec-driven-workflow.md`.
 - Changer les regles metadata : `skills/sf-docs/SKILL.md`, `tools/shipflow_metadata_lint.py`, `shipflow-metadata-migration-guide.md`, `templates/artifacts/`.
+- Changer le positionnement, l'audience ou le scope produit : `BUSINESS.md`, `PRODUCT.md`, `GTM.md`, `BRANDING.md`.
+- Changer la structure technique globale : `ARCHITECTURE.md`, `GUIDELINES.md`, puis `lib.sh` ou les scripts concernes.
 
 ## Read First By Task
 
@@ -147,6 +151,8 @@ Fast paths existent aussi :
 - Skill / workflow : `README.md`, `shipflow-spec-driven-workflow.md`, puis la skill cible.
 - Metadata docs : `shipflow-metadata-migration-guide.md`, `skills/sf-docs/SKILL.md`, `tools/shipflow_metadata_lint.py`.
 - Tunnels / acces local : `local/README.md`, `local/local.sh`, `local/dev-tunnel.sh`.
+- Produit / business / site : `BUSINESS.md`, `PRODUCT.md`, `BRANDING.md`, `GTM.md`.
+- Architecture / conventions : `ARCHITECTURE.md`, `GUIDELINES.md`, `CLAUDE.md`.
 
 ## Linked Docs
 
@@ -156,6 +162,12 @@ Fast paths existent aussi :
 - [CONTEXT-FUNCTION-TREE.md](/home/claude/shipflow/CONTEXT-FUNCTION-TREE.md)
 - [shipflow-spec-driven-workflow.md](/home/claude/shipflow/shipflow-spec-driven-workflow.md)
 - [shipflow-metadata-migration-guide.md](/home/claude/shipflow/shipflow-metadata-migration-guide.md)
+- [BUSINESS.md](/home/claude/shipflow/BUSINESS.md)
+- [PRODUCT.md](/home/claude/shipflow/PRODUCT.md)
+- [BRANDING.md](/home/claude/shipflow/BRANDING.md)
+- [GTM.md](/home/claude/shipflow/GTM.md)
+- [ARCHITECTURE.md](/home/claude/shipflow/ARCHITECTURE.md)
+- [GUIDELINES.md](/home/claude/shipflow/GUIDELINES.md)
 
 ## Maintenance Rule
 
