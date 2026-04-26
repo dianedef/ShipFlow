@@ -53,6 +53,7 @@ Primary commands:
 - The bug is in the real browser auth flow: OAuth redirects, callback routes, cookies, SSR session refresh, or post-login navigation.
 - You need proof of where the browser flow breaks.
 - Supabase Auth appears correct in config, but the app still loops, drops session state, or fails after callback.
+- For the concrete testing playbook, load `references/supabase-testing.md`.
 
 ## Security And Scope Rules
 

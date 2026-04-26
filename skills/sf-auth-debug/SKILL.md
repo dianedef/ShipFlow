@@ -36,6 +36,7 @@ Références locales à charger selon le contexte:
 - `references/clerk-tooling.md` pour choisir entre Clerk MCP, Clerk CLI et Playwright selon le type de bug
 - `references/clerk-testing.md` pour savoir comment tester Clerk avec Playwright, Testing Tokens, comptes de test, OTP de test, et limites dev/prod
 - `references/clerk.md` pour Clerk, Next.js, middleware, redirects, sessions, Google social connection via Clerk
+- `references/supabase-testing.md` pour savoir comment tester Supabase avec stack locale, Mailpit, SSR cookies, RLS, et limites d'automatisation
 - `references/supabase-tooling.md` pour choisir entre Supabase MCP, Supabase CLI et Playwright selon le type de bug
 - `references/vercel-tooling.md` pour choisir entre Vercel MCP et Vercel CLI sur les sujets de déploiement, logs et runtime
 - `references/google-oauth.md` pour les règles OAuth Google, redirect URI, state, consent screen, limites d'automatisation
@@ -127,7 +128,7 @@ Lire seulement les fichiers les plus pertinents avant d'agir:
 
 Charger les références locales pertinentes avant de conclure:
 - Clerk ou `@clerk/*` détecté -> lire `references/clerk-tooling.md`, puis `references/clerk-testing.md` si l'agent doit réellement tester, puis `references/clerk.md`
-- Supabase Auth, `@supabase/ssr`, `@supabase/supabase-js`, `supabase.auth`, `auth/v1`, callback email/OAuth Supabase, ou dossier `supabase/` détecté -> lire `references/supabase-tooling.md` puis `/home/claude/shipflow/skills/references/supabase-auth.md`
+- Supabase Auth, `@supabase/ssr`, `@supabase/supabase-js`, `supabase.auth`, `auth/v1`, callback email/OAuth Supabase, ou dossier `supabase/` détecté -> lire `references/supabase-tooling.md`, puis `references/supabase-testing.md` si l'agent doit réellement tester, puis `/home/claude/shipflow/skills/references/supabase-auth.md`
 - Vercel ou problème de runtime/deploy/logs détecté -> lire `references/vercel-tooling.md`
 - Google OAuth direct ou social login Google -> lire `references/google-oauth.md`
 - Convex détecté -> lire `references/convex-tooling.md`
